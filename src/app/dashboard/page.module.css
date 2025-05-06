@@ -1,0 +1,73 @@
+.container {
+    display: flex;
+    min-height: 100vh;
+    font-family: sans-serif;
+}
+
+.rightSide {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.main {
+    background-color: #fffafa;
+    padding: 40px;
+    flex: 1;
+}
+
+.heading {
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 24px;
+}
+
+.card {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 24px;
+    max-width: 640px;
+}
+
+.formGroup {
+    margin-bottom: 16px;
+}
+
+    .formGroup label {
+        display: block;
+        font-weight: 500;
+        margin-bottom: 6px;
+    }
+
+    .formGroup input,
+    .formGroup select {
+        width: 100%;
+        padding: 10px;
+        border-radius: 4px;
+        border: 1px solid #d1d5db;
+    }
+
+.error {
+    color: red;
+    font-size: 14px;
+}
+
+.action {
+    text-align: right;
+    margin-top: 24px;
+}
+
+    .action button {
+        background-color: #dc2626;
+        color: white;
+        padding: 10px 24px;
+        border: none;
+        border-radius: 9999px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+        .action button:hover {
+            background-color: #b91c1c;
+        }
