@@ -1,0 +1,41 @@
+.navbar {
+    background-color: white;
+    height: 64px;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 0 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.toggleBtn {
+    background-color: white;
+    border: 1px solid #d1d5db;
+    border-radius: 9999px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toggleIcon {
+    background: none;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.brand {
+    color: #dc2626;
+    font-weight: bold;
+    font-size: 20px;
+}
+
+.actions {
+    display: flex;
+    gap: 16px;
+    color: #4b5563;
+    font-size: 20px;
+}
