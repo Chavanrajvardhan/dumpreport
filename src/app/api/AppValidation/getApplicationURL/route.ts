@@ -24,7 +24,7 @@ export async function POST(request:NextRequest){
     
     const res:any = await axios.post("https://testuatgate.rediport.in/api/UserLogin/getApplicationURL",payload);
     
-    console.log("Response token", res.data);
+    // console.log("Response token", res.data);
     if(!res.data) {
         throw new Error("Failed to fetch project data");
     }
