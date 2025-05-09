@@ -25,9 +25,10 @@ import Image from 'next/image';
 // import jhonsonLogo from '../../../public/image.png';
 import DumpReportPage from '../../components/dumpform/Dumpform';
 import { truncate } from 'fs/promises';
-import sidebarLogo from "../../../public/jnj_logo.png";
- 
-const drawerWidth = 240;
+import sidebarLogo from "../../../public/jnj_logo_white.jpg";
+import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
+
+const drawerWidth = 280;
  
 interface AppBarProps extends MuiAppBarProps {
     open?: boolean;
@@ -74,10 +75,13 @@ export default function PersistentDrawerLeft() {
                 className={styles.drawer}
                 sx={{
                     width: drawerWidth,
+                   
                     flexShrink: 0,
                     '& .MuiDrawer-paper': {
                         width: drawerWidth,
+                       borderRight: 'dashed 1px rgb(139, 132, 132, 0.24)',
                         boxSizing: 'border-box',
+                        
                     },
                 }}
                 variant="persistent"
@@ -88,6 +92,7 @@ export default function PersistentDrawerLeft() {
                     <Image
                         src={sidebarLogo}
                         alt="JJ Core Logo"
+                        
                         className={styles.styledSidebarImage}
                         // width={185}
                         // height={45}
@@ -96,19 +101,19 @@ export default function PersistentDrawerLeft() {
  
                     <IconButton onClick={handleDrawerClose} sx={{
                         position: 'fixed',
-                        left: '220px',
+                        left: '260px',
                         zIndex: '99',
                     }}>
                         {theme.direction === 'ltr' ?
-                            <ChevronRightIcon sx={{
+                            <ChevronRightRoundedIcon sx={{
                                 fontSize: 25,
                                 color: '#6E6767',
                                 transform: 'rotate(180deg)',
-                                border: 'dashed 1px rgb(0 0 0 / 24%)',
+                                border: 'dashed 1px rgb(139, 132, 132, 0.24)',
                                 borderRadius: '999px',
                                 backgroundColor: '#FFFFFF',
                             }} />
-                            : <ChevronRightIcon />}
+                            : <ChevronRightRoundedIcon />}
                     </IconButton>
                 </div>
                 <Divider />

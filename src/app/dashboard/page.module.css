@@ -6,7 +6,7 @@
  
 /* AppBar styles */
 .appBar {
-    height: 60px;
+    height: 90px;
     background-color: #fff;
 }
  
@@ -32,17 +32,19 @@
  
 /* Drawer styles */
 .drawer {
-    width: 230px;
+    width: 235px;
     flex-shrink: 0;
 }
  
 .drawerHeader {
     display: flex;
     align-items: center;
-    /* padding: 8px;     */
+    
     justify-content: center;
-    /* background-color: #d51900; */
-    height: 60px;
+    background-color: #cb001c;
+    /* background: url("/jnj_logo.png"); */
+  
+    height: 90px;
 }
  
 .drawerHeader2 {
@@ -111,8 +113,8 @@
     }
  
 .styledSidebarImage {
-    width: 330px;
-    height: 60px;
+    width: 165px;
+    height: 45px;
     justify-content: center;
     position: center;
     object-fit: cover;
