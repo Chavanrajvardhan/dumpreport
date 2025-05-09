@@ -1,0 +1,121 @@
+.root {
+    display: flex;
+    background-color: #fffafa;
+    height:100vh;
+}
+ 
+/* AppBar styles */
+.appBar {
+    height: 60px;
+    background-color: #fff;
+}
+ 
+    .appBar.open {
+        margin-left: 240px;
+        background-color: #ffffff;
+    }
+    .appBar.close {
+       background-color: #ffffff;
+    }
+ 
+/* Menu button styling */
+.menuButton {
+    margin-right: 0px;
+}
+    .menuButton.close {
+        color: #000000;
+    }
+ 
+    .menuButton.hidden {
+        display: flex;
+    }
+ 
+/* Drawer styles */
+.drawer {
+    width: 230px;
+    flex-shrink: 0;
+}
+ 
+.drawerHeader {
+    display: flex;
+    align-items: center;
+    /* padding: 8px;     */
+    justify-content: center;
+    /* background-color: #d51900; */
+    height: 60px;
+}
+ 
+.drawerHeader2 {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    justify-content: flex-end;
+}
+ 
+.drawerHeaderRow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+ 
+ 
+.flexContainer {
+    display: flex;
+    align-items: center;
+}
+ 
+/* Main content area */
+.mainContent {
+    flex-grow: 1;
+    padding:24px;
+    margin-top: 50px;
+    transition: margin 0.3s ease-in-out;
+    margin-left: -240px;
+    height: 90%;
+}
+ 
+    .mainContent.open {
+        margin-left: 0;
+    }
+ 
+/* Drawer Paper */
+.MuiDrawer-paper {
+    width: 230px;
+    box-sizing: border-box;
+}
+ 
+/* List item icon styles */
+.MuiListItemIcon-root {
+    min-width: 40px;
+}
+ 
+/* Typography styles */
+.MuiTypography-root {
+    margin-bottom: 16px;
+}
+ 
+/* Divider styling */
+.MuiDivider-root {
+    margin: 16px 0;
+}
+ 
+/* Styles for the image */
+.styledImage {
+    /* max-width: 165px;
+    height: 45px; */
+    object-fit: cover;
+    position: relative;
+}
+    .styledImage.open {
+        margin-left:240px;
+    }
+ 
+.styledSidebarImage {
+    width: 330px;
+    height: 60px;
+    justify-content: center;
+    position: center;
+    object-fit: cover;
+ 
+}
+ 
