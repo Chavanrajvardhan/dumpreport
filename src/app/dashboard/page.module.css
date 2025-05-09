@@ -20,7 +20,7 @@
  
 /* Menu button styling */
 .menuButton {
-    margin-right: 0px;
+    /* margin-left: 10px; */
 }
     .menuButton.close {
         color: #000000;
@@ -50,7 +50,7 @@
 .drawerHeader2 {
     display: flex;
     align-items: center;
-    padding: 8px;
+    /* padding: 8px; */
     justify-content: flex-end;
 }
  
@@ -109,7 +109,7 @@
     position: relative;
 }
     .styledImage.open {
-        margin-left:240px;
+        margin-left:290px;
     }
  
 .styledSidebarImage {
