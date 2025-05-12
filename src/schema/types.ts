@@ -10,3 +10,12 @@ export interface ApplicationData {
     wwid?: string;            // Optional
   }
   
+  export interface AppCardProps {
+    item: ApplicationData;
+    appToken: string;
+  }
+
+  export interface AppWithToken {
+  app: ApplicationData;
+  appToken: string;
+}
