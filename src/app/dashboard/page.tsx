@@ -51,28 +51,34 @@ export default function PersistentDrawerLeft() {
         <Box className={styles.root}>
             <CssBaseline />
             <MuiAppBar className={`${styles.appBar} ${open ? styles.open : styles.close}`} position="fixed">
-                <Toolbar sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', }}>
+                <Toolbar sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '13px' }}>
+                    <Box sx={{
+                        display: 'flex', alignItems: 'center',
+                    }}>
                         <IconButton
                             color="inherit"
                             aria-label="open drawer"
                             onClick={handleDrawerOpen}
                             edge="start"
+                            sx={!open ? { marginRight: '50px', marginLeft: '20px' } : {}}
                             className={`${styles.menuButton} ${open ? styles.hidden : ''}`}
                         >
                             <MenuIcon className={`${styles.menuButton} ${!open ? styles.close : ''}`} />
                         </IconButton>
+
                         <Image
                             src={"/image.png"}
                             alt="JJ Core Medtech Logo"
                             className={` ${styles.styledImage} ${open ? styles.open : ''}`}
                             priority
-                            width={165}
-                            height={45}
+                            width={150}
+                            height={35}
                         />
                     </Box>
+                    <div style={{ marginRight: '30px' }} >
 
-                    <LogoutProp />
+                        <LogoutProp />
+                    </div>
                 </Toolbar>
 
             </MuiAppBar>

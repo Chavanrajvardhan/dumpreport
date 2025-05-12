@@ -1,46 +1,74 @@
-// src/app/allprojectaccess/page.tsx
-import Image from 'next/image';
-import AppCard from '../../components/AppCard/AppCard';
-import stylecss from './page.module.css';
-import LogoutProp from '../../components/Logout/LogoutProp';
+// app/applications/page.tsx
 import axios from 'axios';
+import AppCard from '@/components/AppCard/AppCard';
 import { cookies } from 'next/headers';
+import { ApplicationData } from '@/schema/types';
+import stylecss from './page.module.css';
+import Image from 'next/image';
+import LogoutProp from '@/components/Logout/LogoutProp';
 
-async function getData() {
-  try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
-    const userId = cookieStore.get('userId')?.value;
- 
-    const response = await axios.post("http://localhost:3000/api/AppValidation/getactiveapplications", { token,userId });
- 
-    if (response.status != 200) {
-      console.log("Error fetching data");
-    }
-    // console.log("after api hit");
-   
-    // console.log(response.data.data);
-   
-    return response.data.data;
- 
-  } catch (error: any) {
-    console.log("Error in getData:", error.message);
-    return [];
-  }
+export const dynamic = 'force-dynamic';
+
+interface TokenResponse {
+  token: string;
+  status: number;
 }
 
-export default async function Page() {
-  const data = await getData();
+export default async function ApplicationsPage() {
+  const cookieStore = await cookies(); 
+  const token = cookieStore.get('token')?.value;
+  const userId = cookieStore.get('userId')?.value;
+
+  if (!token || !userId) {
+    return <div style={{ color: 'red' }}>Not authenticated</div>;
+  }
+
+  let appData: ApplicationData[] = [];
+  let appCardsWithTokens: { app: ApplicationData; appToken: string }[] = [];
+
+  try {
+    // Step 1: Get Applications
+    const payload = { UserId: userId, token };
+    const res = await axios.post('https://testuatgate.rediport.in/api/UserLogin/getactiveapplications', payload);
+    appData = res.data || [];
+    console.log('Application Data:', appData);
+
+    // Step 2: Get Token for each App using Axios
+    const tokenPromises = appData.map(async (app) => {
+      const tokenPayload = {
+        UserId: userId,
+        token: token,
+        ApplicationId: app.applicationCode,
+      };
+
+      const tokenRes = await axios.post<TokenResponse>(
+        'https://testuatgate.rediport.in/api/UserLogin/getApplicationURL',
+        tokenPayload
+      );
+      console.log('Token Response:', tokenRes.data);
+
+      return {
+        app,
+        appToken: tokenRes.data.token,
+      };
+    });
+
+    appCardsWithTokens = await Promise.all(tokenPromises);
+
+  } catch (error) {
+    console.error('Error fetching apps or tokens:', error);
+    return <div style={{ color: 'red' }}>Error loading applications</div>;
+  }
 
   return (
     <div className={stylecss.background}>
       <div className={stylecss.header}>
-        <Image src={"/image.png"} alt={"jaj image"} width={145} height={40} className={stylecss.image} />
+        <Image src="/image.png" alt="Logo" width={145} height={40} className={stylecss.image} />
         <LogoutProp />
       </div>
       <div className={stylecss.main}>
-        {data.map((item: any, index: number) => (
-          <AppCard key={index} item={item} />
+        {appCardsWithTokens.map(({ app, appToken }, index) => (
+          <AppCard key={index} item={app} appToken={appToken} />
         ))}
       </div>
     </div>
