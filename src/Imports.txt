@@ -5,3 +5,6 @@ npm i react-hook-form
 
 npm install @emotion/react@^11.14.0 @emotion/styled@^11.14.0 @mui/icons-material@^7.1.0 @mui/material@^7.1.0 @mui/x-date-pickers@^8.2.0 axios@^1.9.0 date-fns@^4.1.0
  
+npm install tailwindcss @tailwindcss/postcss postcss
+
+npm i @mui/x-data-grid

@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import axios from "axios";
+import LoadingScreen from "@/components/LoadingScreen/LoadingScreen";
 
 type Formvalues = {
   email: string;
@@ -14,6 +15,7 @@ type Formvalues = {
 
 function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const router = useRouter();
   const {
@@ -24,6 +26,7 @@ function LoginPage() {
 
   const onSubmit = async (data: Formvalues) => {
     console.log(data);
+    setLoading(true);
 
     try {
       const response:any = await axios.post("api/user/login", data);
@@ -42,6 +45,8 @@ function LoginPage() {
   };
 
   return (
+    <>
+    {loading && <LoadingScreen/>}
     <div className={classess.mainContainer}>
       <div className={classess.containerBox}>
         <div className={classess.smallDiv}>
@@ -50,14 +55,14 @@ function LoginPage() {
             alt={"jnj image"}
             width={140}
             height={50}
-          />
+            />
           <Image
             src={"/image.png"}
             alt={"jnj image"}
             width={180}
             height={40}
             style={{ paddingRight: "30px" }}
-          />
+            />
         </div>
 
         <div className={classess.smallDiv}>
@@ -69,7 +74,7 @@ function LoginPage() {
           <form
             onSubmit={handleSubmit(onSubmit)}
             style={{ display: "flex", flexDirection: "column", gap: "14px" }}
-          >
+            >
             <label className={classess.planeLabale}>Email</label>
             <input
               type="email"
@@ -81,7 +86,7 @@ function LoginPage() {
                   message: "Invalid email address",
                 },
               })}
-            />
+              />
 
             <div style={{ display: "flex", justifyContent: "space-between" }}>
               <label className={classess.planeLabale}>Password</label>
@@ -103,7 +108,7 @@ function LoginPage() {
                     message: "Password must be at least 8 characters",
                   },
                 })}
-              />
+                />
               <span
                 onClick={() => setShowPassword(!showPassword)}
                 style={{
@@ -113,20 +118,20 @@ function LoginPage() {
                   transform: "translateY(-50%)",
                   cursor: "pointer",
                 }}
-              >
+                >
                 {showPassword ? (
                   <Image
-                    src={"/visibility_icon.svg"}
-                    alt={"visible_icon"}
-                    width={18}
-                    height={18}
+                  src={"/visibility_icon.svg"}
+                  alt={"visible_icon"}
+                  width={18}
+                  height={18}
                   />
                 ) : (
                   <Image
-                    src={"visibility_off_icon.svg"}
-                    alt="visibility_off_icon"
-                    width={18}
-                    height={18}
+                  src={"visibility_off_icon.svg"}
+                  alt="visibility_off_icon"
+                  width={18}
+                  height={18}
                   />
                 )}
               </span>
@@ -157,6 +162,7 @@ function LoginPage() {
         </div>
       </div>
     </div>
+                </>
   );
 }
 

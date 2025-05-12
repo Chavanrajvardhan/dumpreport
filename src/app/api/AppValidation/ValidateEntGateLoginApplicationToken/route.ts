@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
         if (!res.data) {
             throw new Error("Failed to fetch project data");
         }
-        console.log("Response token", res.data.token);
+        // console.log("Response token", res.data.token);
 
         
         const reportToken:string = res.data.token;

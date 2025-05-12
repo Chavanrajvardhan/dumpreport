@@ -5,7 +5,7 @@ export async function POST(request: NextRequest) {
     try {
         const token = await request.cookies.get("reportToken")?.value;
         // console.log("reportToken", token);
-        console.log("api hit here");
+        // console.log("api hit here");
 
         // const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJEYXRhIjoiMXc0NnhXYmRLWGxHWDJPMXQ5WFkvL0JTaGpNbnZETXFyc3ZIeGdvcmlYbEk0QkNCT01EMEs1UmVKNllVYkVSUWJhaDRVSjNQSk1IMHJoSDdJbnV1bFVIOWd1bDZtL0hCcEZkMWJEbUYvRWM9IiwibmJmIjoxNzQ2Njk4NzA0LCJleHAiOjE3NDY3MTY3MDQsImlhdCI6MTc0NjY5ODcwNCwiaXNzIjoiaHR0cHM6Ly9sb2NhbGhvc3Q6NDQzNjkiLCJhdWQiOiJodHRwOi8vbG9jYWxob3N0OjQ0MzY5In0.zZRlqS6qY9hFO5QnEsWA24o49TX1n5lE6jeAxRqn_80";
 
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
             }
         };
 
-        const res :any = await axios.post(
+        const res : any = await axios.post(
             "https://testapp1.rediport.in/api/RaiseTicket/getallfranchise",
             {},
             headersInfo

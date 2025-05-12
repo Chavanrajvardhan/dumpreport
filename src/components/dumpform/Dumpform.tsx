@@ -234,7 +234,7 @@ const DumpReportPage = () => {
       localStorage.setItem('formPayload', JSON.stringify(payload));
 
       // Open the next page in a new tab
-      window.open('/next-page', '_blank');
+      window.open('/report', '_blank');
     }
   };
 
