@@ -4,7 +4,7 @@ import Image from 'next/image';
 import * as React from 'react';
 import { DataGrid, GridColDef, GridRowId } from '@mui/x-data-grid';
 import classess from "../login/loginCss.module.css";
-
+import axios from 'axios';
 // icons
 import FilterListIcon from '@mui/icons-material/FilterList';
 import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
@@ -23,49 +23,76 @@ export interface GridData {
 function useData(rowLength: number, columnLength: number) {
   const [data, setData] = React.useState<GridData>({ columns: [], rows: [] });
 
-  /* React.useEffect(() => {
-     async function fetchData() {
-       try {
-         const res = await fetch('/api/data'); // Change to your API endpoint
-         const json = await res.json();
-         setData({
-           columns: json.columns,
-           rows: json.rows,
-         });
-       } catch (error) {
-         console.error('Failed to load data:', error);
-       }
-     }
- 
-     fetchData();
-   }, []);*/
-
-
   React.useEffect(() => {
-    const rows: DataRowModel[] = [
-      { id: 1, name: 'Apple', category: 'Fruit', price: 1.25, stock: 100 },
-      { id: 2, name: 'Banana', category: 'Fruit', price: 0.75, stock: 150 },
-      { id: 3, name: 'Carrot', category: 'Vegetable', price: 0.5, stock: 200 },
-      { id: 4, name: 'Broccoli', category: 'Vegetable', price: 1.1, stock: 80 },
-      { id: 5, name: 'Chicken Breast', category: 'Meat', price: 5.5, stock: 50 },
-      { id: 6, name: 'Salmon', category: 'Fish', price: 9.99, stock: 25 },
-      { id: 7, name: 'Milk', category: 'Dairy', price: 2.5, stock: 60 },
-      { id: 8, name: 'Cheese', category: 'Dairy', price: 3.75, stock: 45 },
-    ];
+   async function fetchData() {
+  try {
+    // Retrieve from localStorage
+    const storedPayload = localStorage.getItem('formPayload');
+    let payload = storedPayload ? JSON.parse(storedPayload) : {};
 
-    const columns: GridColDef[] = [
-      { field: 'id', headerName: 'ID', width: 70 },
-      { field: 'name', headerName: 'Name', width: 150 },
-      { field: 'category', headerName: 'Category', width: 130 },
-      { field: 'price', headerName: 'Price ($)', width: 100 },
-      { field: 'stock', headerName: 'In Stock', width: 100 },
-    ];
+    // Replace null with 0
+    payload = Object.fromEntries(
+      Object.entries(payload).map(([key, value]) => [key, value === null ? 0 : value])
+    );
 
-    setData({ rows, columns });
+    console.log("Payload", payload)
+
+    // Send the modified payload to the API
+    const response = await axios.post('/api/report', payload);
+    const rawData = response.data.result;
+
+    if (Array.isArray(rawData) && rawData.length > 0) {
+      const sampleSize = Math.min(20, rawData.length);
+      const sampleRows = rawData.slice(0, sampleSize);
+
+      const columns: GridColDef[] = Object.keys(rawData[0]).map((key) => {
+        let maxLength = key.length;
+        for (let i = 0; i < sampleRows.length; i++) {
+          const value = sampleRows[i][key];
+          if (value !== null && value !== undefined) {
+            maxLength = Math.max(maxLength, value.toString().length);
+          }
+        }
+
+        const width = Math.min(Math.max(maxLength * 9, 100), 300);
+
+        return {
+          field: key,
+          headerName: key,
+          width,
+          align: 'center',
+          headerAlign: 'center',
+          renderCell: (params) => (
+            <span>{params.value !== null && params.value !== undefined ? params.value : '-'}</span>
+          ),
+        };
+      });
+
+      const rows = rawData.map((row, index) => {
+        const formattedRow: any = { id: index };
+        for (const key of Object.keys(row)) {
+          formattedRow[key] = row[key] ?? '-';
+        }
+        return formattedRow;
+      });
+
+      setData({ columns, rows });
+    } else {
+      console.warn('Empty or invalid data from API');
+    }
+  } catch (error) {
+    console.error('Failed to load data:', error);
+  }
+}
+
+
+    fetchData();
   }, []);
 
   return data;
 }
+
+
 
 export default function ColumnVirtualizationGrid() {
   const data = useData(100, 1000);
@@ -144,13 +171,13 @@ export default function ColumnVirtualizationGrid() {
                     {/* Search Input */}
                     <div className="relative w-[260px]">
                       <input
-                        style={{ margin: '2px', paddingLeft:'28px' }}
+                        style={{ margin: '2px', paddingLeft: '28px' }}
                         type="text"
                         placeholder="Search"
                         className="w-full pl-10 pr-4 h-10 border border-[#fceeee] rounded-md bg-[#fff9f9] outline-none focus:border-black"
                       />
                       <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                        <SearchOutlinedIcon fontSize="small"/>
+                        <SearchOutlinedIcon fontSize="small" />
                       </div>
                     </div>
 
@@ -190,8 +217,12 @@ export default function ColumnVirtualizationGrid() {
                   {...data}
                   sx={{
                     border: 'none', // No outer border
+                    textAlign: 'center',
                     '& .MuiDataGrid-cell': {
-                      border: 'none', // No cell borders
+                      border: 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
                     },
                     '& .MuiDataGrid-columnHeaders': {
                       backgroundColor: '#fff9f9', // ✅ Header background
@@ -199,15 +230,19 @@ export default function ColumnVirtualizationGrid() {
 
                     },
                     '& .MuiDataGrid-columnHeader': {
-                      backgroundColor: '#fff9f9', // ✅ Ensures each header cell also gets the color
+                      backgroundColor: '#fff9f9',
                       fontFamily: 'Arial, sans-serif',
                       color: 'rgb(52, 45, 45)',
                       fontWeight: '700',
                       fontSize: '13px',
+                      display: 'flex',
+                      justifyContent: 'center',
                     },
                     '& .MuiDataGrid-columnHeaderTitle': {
-                      fontWeight: 700, // 👈 directly targets the title element
-                    },
+                      fontWeight: 700,
+                      whiteSpace: 'normal', // 👈 Allow wrapping instead of truncation
+                      lineHeight: '1.2',
+                      textAlign: 'center',                    },
                     '& .MuiDataGrid-columnSeparator': {
                       display: 'none !important', // No column separators
                     },
