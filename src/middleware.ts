@@ -8,7 +8,7 @@ export function middleware(request: NextRequest) {
 
     const path = request.nextUrl.pathname
 
-    const isPublicPath = path === '/'
+    const isPublicPath = path === '/login'
 
 
     //get token from local storage 

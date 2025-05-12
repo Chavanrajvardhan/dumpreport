@@ -1,76 +1,61 @@
-// app/applications/page.tsx
-import axios from 'axios';
+'use client';
+
+import React, { useEffect, useState } from 'react';
 import AppCard from '@/components/AppCard/AppCard';
-import { cookies } from 'next/headers';
-import { ApplicationData } from '@/schema/types';
+import { AppWithToken } from '@/schema/types';
 import stylecss from './page.module.css';
 import Image from 'next/image';
 import LogoutProp from '@/components/Logout/LogoutProp';
+import LoadingScreen from "@/components/LoadingScreen/LoadingScreen";
+// import { set } from 'react-hook-form';
 
-export const dynamic = 'force-dynamic';
 
-interface TokenResponse {
-  token: string;
-  status: number;
-}
 
-export default async function ApplicationsPage() {
-  const cookieStore = await cookies(); 
-  const token = cookieStore.get('token')?.value;
-  const userId = cookieStore.get('userId')?.value;
 
-  if (!token || !userId) {
-    return <div style={{ color: 'red' }}>Not authenticated</div>;
-  }
+export default function ApplicationsPage() {
+  const [appCardsWithTokens, setAppCardsWithTokens] = useState<AppWithToken[]>([]);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  let appData: ApplicationData[] = [];
-  let appCardsWithTokens: { app: ApplicationData; appToken: string }[] = [];
+  useEffect(() => {
+    setLoading(true);
+    const fetchApps = async () => {
+      try {
+        const res = await fetch('/api/AppValidation/Applications');
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || 'Unknown error');
+        }
 
-  try {
-    // Step 1: Get Applications
-    const payload = { UserId: userId, token };
-    const res = await axios.post('https://testuatgate.rediport.in/api/UserLogin/getactiveapplications', payload);
-    appData = res.data || [];
-    console.log('Application Data:', appData);
+        const data = await res.json();
+        setAppCardsWithTokens(data);
+        setLoading(false);
+      } catch (err: any) {
+        console.error('Fetch error:', err.message);
+        setError(err.message || 'Error loading applications');
+      }
+    };
 
-    // Step 2: Get Token for each App using Axios
-    const tokenPromises = appData.map(async (app) => {
-      const tokenPayload = {
-        UserId: userId,
-        token: token,
-        ApplicationId: app.applicationCode,
-      };
+    fetchApps();
+  }, []);
 
-      const tokenRes = await axios.post<TokenResponse>(
-        'https://testuatgate.rediport.in/api/UserLogin/getApplicationURL',
-        tokenPayload
-      );
-      console.log('Token Response:', tokenRes.data);
-
-      return {
-        app,
-        appToken: tokenRes.data.token,
-      };
-    });
-
-    appCardsWithTokens = await Promise.all(tokenPromises);
-
-  } catch (error) {
-    console.error('Error fetching apps or tokens:', error);
-    return <div style={{ color: 'red' }}>Error loading applications</div>;
-  }
+  if (error) return <div style={{ color: 'red' }}>{error}</div>;
 
   return (
-    <div className={stylecss.background}>
-      <div className={stylecss.header}>
-        <Image src="/image.png" alt="Logo" width={145} height={40} className={stylecss.image} />
-        <LogoutProp />
+
+    <>
+      {loading && <LoadingScreen />}
+      <div className={stylecss.background}>
+        <div className={stylecss.header}>
+          <Image src="/image.png" alt="Logo" width={145} height={40} className={stylecss.image} />
+          <LogoutProp />
+        </div>
+        <div className={stylecss.main}>
+          {appCardsWithTokens.map(({ app, appToken }, index) => (
+            <AppCard key={index} item={app} appToken={appToken} />
+          ))}
+        </div>
       </div>
-      <div className={stylecss.main}>
-        {appCardsWithTokens.map(({ app, appToken }, index) => (
-          <AppCard key={index} item={app} appToken={appToken} />
-        ))}
-      </div>
-    </div>
+    </>
   );
 }
