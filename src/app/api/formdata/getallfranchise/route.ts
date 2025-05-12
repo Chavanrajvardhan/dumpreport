@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
             }
         };
 
-        const res = await axios.post(
+        const res :any = await axios.post(
             "https://testapp1.rediport.in/api/RaiseTicket/getallfranchise",
             {},
             headersInfo

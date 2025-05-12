@@ -1,7 +1,9 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import styles from './Dumpform.module.css'
 import axios from 'axios';
+import { format } from 'date-fns';
+
 
 
 // Import additional MUI components for DatePicker
@@ -23,8 +25,12 @@ import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import {
   ThemeProvider,
   createTheme,
-  StyledEngineProvider,
+
 } from '@mui/material/styles';
+import { styled } from '@mui/material/styles';
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import dayjs from "dayjs";
+import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -82,38 +88,6 @@ const selectFieldStyles = {
   }
 };
 
-// Custom styles for DatePicker field
-const datePickerStyles = {
-  m: 1,
-  width: 300,
-  '& .MuiOutlinedInput-root': {
-    height: '20px',
-    borderRadius: '50px',
-    '& .MuiOutlinedInput-notchedOutline': {
-      borderRadius: '50px',
-      borderColor: 'rgba(0, 0, 0, 0.23)',
-    },
-    '&:hover .MuiOutlinedInput-notchedOutline': {
-      borderColor: 'rgba(0, 0, 0, 0.87)',
-    },
-    // Target the focused state AND the outline specifically
-    '&.Mui-focused > .MuiOutlinedInput-notchedOutline': {
-      borderColor: 'gray !important',
-    },
-  },
-  '& .MuiInputLabel-root': {
-    color: 'gray',
-    '&.Mui-focused': {
-      color: 'gray !important',
-    },
-  },
-  '& .MuiFormLabel-root.Mui-error': {
-    color: 'gray !important',
-  },
-  '& .MuiOutlinedInput-root.Mui-error .MuiOutlinedInput-notchedOutline': {
-    borderColor: 'gray !important',
-  },
-};
 
 // Use global CSS overrides for month and year pickers
 const customTheme = createTheme({
@@ -132,91 +106,45 @@ const customTheme = createTheme({
   },
 });
 
-// Updated CSS for better calendar layout
-const injectGlobalStyles = `
-  /* Style for selected months and years */
-  .MuiMonthPicker-root .MuiPickersMonth-root.Mui-selected,
-  .MuiYearPicker-root .MuiPickersYear-root.Mui-selected,
-  .MuiMonthCalendar-root .Mui-selected,
-  .MuiYearCalendar-root .Mui-selected,
-  .css-1u23akw-MuiButtonBase-root-MuiPickersDay-root.Mui-selected {
-    background-color: red !important;
-    color: white !important;
-    font-weight: bold !important;
-  }
- 
-  /* Style for the calendar popup - different sizes for year and month views */
-  .MuiPaper-root.MuiPickersPopper-paper,
-  .MuiDialog-paper,
-  .MuiPickersPopper-paper,
-  .MuiPaper-root.MuiDialog-paper,
-  .MuiPaper-root.MuiPopover-paper {
-    border-radius: 16px !important;
-    overflow: hidden !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
-  }
- 
-  /* Month view - compact with proper padding */
-  .MuiMonthCalendar-root {
-    width: 280px !important;
-    max-width: 280px !important;
-    margin: 0 auto !important;
-    padding: 8px !important;
-  }
- 
-  /* Year view - larger size */
-  .MuiYearCalendar-root {
-    min-width: 320px !important;
-    margin: 0 auto !important;
-    padding: 16px !important;
-  }
- 
-  /* Year buttons styling */
-  .MuiPickersYear-yearButton {
-    margin: 4px !important;
-    padding: 6px 8px !important;
-  }
- 
-  /* Month buttons styling */
-  .MuiPickersMonth-monthButton {
-    margin: 4px !important;
-    padding: 6px 8px !important;
-  }
- 
-  /* Calendar container - general improvements */
-  .MuiCalendarOrClockPicker-root,
-  .MuiCalendarPicker-root,
-  .MuiPickersCalendarHeader-root,
-  .MuiDateCalendar-root {
-    margin: 0 auto !important;
-  }
- 
-  /* Make the container horizontally centered */
-  .MuiPickersCalendarHeader-root {
-    margin: 0 auto !important;
-    padding: 8px !important;
-    justify-content: center !important;
-  }
- 
-  /* Style for month/year view headers */
-  .MuiPickersCalendarHeader-label {
-    font-weight: bold !important;
-    font-size: 1rem !important;
-    color: black !important;
-  }
-`;
+
+const CustomTextField = styled(TextField)({
+  width: "300px",
+  height: "50px",
+  "& label": {
+    color: "gray",
+  },
+  "& label.Mui-focused": {
+    color: "gray",
+  },
+  "& .MuiOutlinedInput-root": {
+    height: "40px",
+    "& fieldset": {
+      borderColor: "#c4c4c4",
+      borderRadius: "8px",
+    },
+    "&:hover fieldset": {
+      borderColor: "darkgray",
+    },
+    "&.Mui-focused fieldset": {
+      borderColor: "gray",
+    },
+  },
+});
+
 
 const DumpReportPage = () => {
   const theme = useTheme();
 
+  const [selectedDate, setSelectedDate] = useState(dayjs().subtract(30, "day"));
   // Modified to use Date object for better date handling
   const [month, setMonth] = useState<Date | null>(null);
   const [franchise, setFranchise] = useState<{ franchise: string }[]>([]);
-  const [distributor, setDistributor] = useState([]);
+  const [distributor, setDistributor] = useState('');
   const [errors, setErrors] = useState<{ month?: string; franchise?: string }>({});
   const [selectedFranchise, setSelectedFranchise] = useState(''); // the selected item
   const [organizationSegment, setOrganizationSegment] = useState<string[]>([]);
   const [selectedSegment, setSelectedSegment] = useState(''); // selected item
+  // const [selecteddist, setselecteddist] = useState('All')
 
 
   // Added state for handling calendar open/close
@@ -266,13 +194,19 @@ const DumpReportPage = () => {
   // };
 
   // Handler for date changes
-  const handleDateChange = (newDate: Date | null) => {
-    setMonth(newDate);
-    // Clear the error when a date is selected
-    if (newDate) {
-      setErrors((prev) => ({ ...prev, month: undefined }));
-    }
-  };
+  const handleDateChange = (newValue: any) => {
+  setSelectedDate(newValue);
+  if (newValue) {
+    const dateObj = new Date(newValue);
+    const firstOfMonth = new Date(dateObj.getFullYear(), dateObj.getMonth(), 1);
+    setMonth(firstOfMonth);
+    setErrors((prev) => ({ ...prev, month: undefined }));
+  } else {
+    setMonth(null);
+  }
+};
+
+
 
   // Format date to display as MMM-YYYY (e.g., Jan-2024)
   const formatDateDisplay = (date: Date | null): string => {
@@ -285,35 +219,27 @@ const DumpReportPage = () => {
     return `${month}-${year}`;
   };
 
-  const handleSubmit = () => {
-    const newErrors: typeof errors = {};
-    if (!month) newErrors.month = 'Month is required';
-    if (!franchise) newErrors.franchise = 'Franchise is required';
-    setErrors(newErrors);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
 
-    if (Object.keys(newErrors).length === 0) {
-      // Format the date in MMM-YYYY format for the alert demonstration
-      const formattedDate = formatDateDisplay(month);
+    const payload = {
+      MonthDate: month ? format(month, 'yyyy-MM-dd') : null,
+      franchise: selectedFranchise || null,
+      distributorId: distributor === "ALL" ? "0" : distributor,
+      orgSegment: null,
+    };
 
-      alert(`Form submitted with date: ${formattedDate}, franchise: ${franchise}`);
+    // Save to localStorage
+    if (typeof window !== "undefined") {
+      localStorage.setItem('formPayload', JSON.stringify(payload));
+
+      // Open the next page in a new tab
+      window.open('/next-page', '_blank');
     }
   };
 
-  // Add global styles to head
-  React.useEffect(() => {
-    // Create style element
-    const style = document.createElement('style');
-    style.type = 'text/css';
-    style.innerHTML = injectGlobalStyles;
 
-    // Append to head
-    document.head.appendChild(style);
 
-    // Cleanup on unmount
-    return () => {
-      document.head.removeChild(style);
-    };
-  }, []);
 
   return (
     <div className={styles.container}>
@@ -323,56 +249,66 @@ const DumpReportPage = () => {
           {/* Month picker with calendar icon */}
           <div className={styles.formGroup}>
             <label>Month :</label>
-            <StyledEngineProvider injectFirst>
-              <ThemeProvider theme={customTheme}>
-                <LocalizationProvider dateAdapter={AdapterDateFns}>
-                  <DatePicker
-                    views={['month', 'year']}
-                    label="Select Month and Year"
-                    value={month}
-                    onChange={handleDateChange}
-                    open={datePickerOpen}
-                    onClose={() => setDatePickerOpen(false)}
-                    openTo="month"
-                    slotProps={{
-                      textField: {
-                        sx: {
-                          ...datePickerStyles,
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DemoContainer
+                components={["DatePicker"]}
+                sx={{ paddingLeft: "8px" }}
+              >
+                <DatePicker
+                  label="Month"
+                  value={selectedDate}
+                  onChange={handleDateChange}
+                  format="MMM-YYYY"
+                  views={["month", "year"]}
+                  enableAccessibleFieldDOMStructure={false}
+                  slots={{
+                    textField: (params) => <CustomTextField {...params} />,
+                  }}
+                  slotProps={{
+                    popper: {
+                      modifiers: [
+                        {
+                          name: "offset",
+                          options: {
+                            offset: [0, 10],
+                          },
+                        },
+                      ],
+                      sx: {
+                        height: "300px",
 
-                          '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                            borderColor: 'gray !important',
-                          },
-                          '& .MuiInputLabel-root.Mui-focused': {
-                            color: 'gray !important',
-                          },
+                        "& .MuiMonthCalendar-button.Mui-focused": {
+                          backgroundColor: "red",
+                          color: "white",
+                          fontWeight: "bold",
                         },
-                        InputProps: {
-                          endAdornment: (
-                            <InputAdornment position="end">
-                              <IconButton onClick={() => setDatePickerOpen(true)}>
-                                <CalendarMonthIcon />
-                              </IconButton>
-                            </InputAdornment>
-                          ),
+                        "& .MuiMonthCalendar-button.Mui-selected": {
+                          backgroundColor: "red",
+                          color: "white",
+                          fontWeight: "bold",
                         },
+                        "& .MuiYearCalendar-button.Mui-focused": {
+                          backgroundColor: "red",
+                          color: "white",
+                          fontWeight: "bold",
+                        },
+                        "& .MuiYearCalendar-button.Mui-selected": {
+                          backgroundColor: "red",
+                          color: "white",
+                          fontWeight: "bold",
+                        },
+                        "& .MuiPickersYear-year, & .MuiPickersMonth-month": {
+                          fontWeight: 500,
+                        },
+
                       },
-                      // Better sizing for the popper
-                      popper: {
-                        sx: {
-                          '& .MuiPaper-root': {
-                            borderRadius: '16px',
-                          },
-                        },
-                      },
-                    }}
-                    format="MMM-yyyy"
-                  />
-                </LocalizationProvider>
-              </ThemeProvider>
-            </StyledEngineProvider>
+                    },
+                  }}
+                />
+              </DemoContainer>
+            </LocalizationProvider>
             {errors.month && <p className={styles.error}>{errors.month}</p>}
           </div>
-
           <div className={styles.formGroup}>
             <label>Franchise :</label>
             {/* Franchise select with custom styling and blue label */}
@@ -404,17 +340,41 @@ const DumpReportPage = () => {
           <div className={styles.formGroup}>
             <label>Distributor Name :</label>
             {/* Distributor select with custom styling and blue label */}
+            {/* <FormControl sx={selectFieldStyles} disabled>
+              <InputLabel id="distributor-label">Distributor</InputLabel>
+              <Select
+                labelId="distributor-label"
+                id="distributor-select"
+                value={'ALL'} // Force value
+                input={<OutlinedInput label="Distributor" />}
+                MenuProps={MenuProps}
+              >
+                <MenuItem value="ALL" style={getStyles("ALL", 'ALL', theme)}>
+                  ALL
+                </MenuItem>
+              </Select>
+            </FormControl> */}
             <FormControl sx={selectFieldStyles}>
               <InputLabel id="distributor-label">Distributor</InputLabel>
               <Select
                 labelId="distributor-label"
                 id="distributor-select"
                 value={distributor}
-                // onChange={handleDistributorChange}
+                onChange={(e) => setDistributor(e.target.value)} // updated
                 input={<OutlinedInput label="Distributor" />}
                 MenuProps={MenuProps}
               >
-                {['ALL'].map((name) => (
+                {/* Add "ALL" option */}
+                <MenuItem
+                  key="ALL"
+                  value="ALL"
+                  style={getStyles("ALL", distributor, theme)}
+                >
+                  ALL
+                </MenuItem>
+
+                {/* Add actual distributor options here as needed */}
+                {['Distributor A', 'Distributor B'].map((name) => (
                   <MenuItem
                     key={name}
                     value={name}
@@ -425,6 +385,8 @@ const DumpReportPage = () => {
                 ))}
               </Select>
             </FormControl>
+
+
           </div>
 
           <div className={styles.formGroup}>
@@ -442,10 +404,15 @@ const DumpReportPage = () => {
               >
                 {organizationSegment.map((seg) => (
                   <MenuItem
+                    //@ts-ignore
                     key={seg.id}
+                    //@ts-ignore
                     value={seg.code}
+                    //@ts-ignore
                     style={getStyles(seg.code, selectedSegment, theme)}
+
                   >
+
                     {seg.description}
                   </MenuItem>
                 ))}
