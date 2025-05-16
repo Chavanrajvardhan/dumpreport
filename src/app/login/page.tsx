@@ -16,6 +16,7 @@ type Formvalues = {
 function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  // const router = useRouter();
 
   const router = useRouter();
   const {
@@ -35,12 +36,17 @@ function LoginPage() {
         console.log("response: ", response);
         router.push("/allprojectaccess");
       } else {
+        setLoading(false);
         console.log("Login error: Invalid Username and Password");
       }
       
     } catch (error: any) {
+      setLoading(false);
       console.log(error.message);
       console.log("Internal server error");
+      // throw new Error("Internal server error");
+      router.push("/error");
+
     }
   };
 

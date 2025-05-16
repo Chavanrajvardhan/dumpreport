@@ -21,14 +21,15 @@ export async function POST(request: NextRequest) {
 
         console.log("Encoded token", encodedToken);
         
-        const refererUrl = `"https://testapp1.rediport.in/entgatelogin?code=${encodedToken}&userId=3&appId=1&roleName=J%26J+COE&distributorCode=&wwid=20240430`;
+        const refererUrl = `https://testapp1.rediport.in/entgatelogin?code=${encodedToken}&userId=3&appId=1&roleName=J%26J+COE&distributorCode=&wwid=20240430`;
         console.log("Referer URL", refererUrl);
 
 
         const res = await axios.post("https://testapp1.rediport.in/api/UserMaster/ValidateEntGateLoginApplicationToken", payload,
             {
                 headers: {
-                    Referer: refererUrl
+                    "Content-Type": "application/json",
+                    Referer: refererUrl,
                 }
             }
         )
