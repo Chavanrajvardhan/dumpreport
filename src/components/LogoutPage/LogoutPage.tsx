@@ -20,7 +20,7 @@ const LogoutModal: FC<LogoutModalProps> = ({ isOpen, onClose, onConfirm }) => {
         <div className={styles.modalHeader}>
           <div className={styles.modalTitle}>
             <AiOutlineInfoCircle className={styles.infoIcon} />
-            <span>Logout</span>
+            <span className={styles.text}>Logout</span>
           </div>
           <button onClick={onClose} className={styles.closeButton}>
             <IoIosClose />

@@ -12,7 +12,6 @@ import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import Popover from '@mui/material/Popover';
 import CircularProgress from '@mui/material/CircularProgress';
 import * as XLSX from 'xlsx';
-import { useRouter } from 'next/navigation';
 
 export interface DataRowModel {
   id: GridRowId;
@@ -30,25 +29,150 @@ const capitalizeFirstLetter = (value: any): any => {
   return value.charAt(0).toUpperCase() + value.slice(1);
 };
 
+const formatToCustomDate = (dateString: string): string => {
+  if (!dateString || dateString === '-') return dateString;
+
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString; // Return original if invalid date
+
+    // Get day with leading zero
+    const day = String(date.getDate()).padStart(2, '0');
+
+    // Get month name abbreviated
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const month = monthNames[date.getMonth()];
+
+    // Get full year
+    const year = date.getFullYear();
+
+    return `${day}-${month}-${year}`;
+  } catch (error) {
+    console.error("Error formatting date:", error);
+    return dateString; // Return original on error
+  }
+};
+
+// Helper function to format month in MMM-YYYY format
+const formatMonthYear = (dateString: string): string => {
+  if (!dateString || dateString === '-') return dateString;
+
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString; // Return original if invalid date
+
+    // Get month name abbreviated
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const month = monthNames[date.getMonth()];
+
+    // Get full year
+    const year = date.getFullYear();
+
+    return `${month}-${year}`;
+  } catch (error) {
+    console.error("Error formatting month-year:", error);
+    return dateString; // Return original on error
+  }
+};
+
 // Custom header mappings (add more as needed)
 const customHeaderMappings: Record<string, string> = {
   'franchise': 'Franchise',
+  'subFranchise': 'Sub Franchise',
+  'documentType': 'Document Type',
+  'dataMonth': 'Data Month',
+  'documentNumber': 'Document Number',
+  'billDocDate': 'Bill Doc Date',
+  'distributorRegion': 'Distributor Region',
+  'distributorCode': 'Distributor Code',
+  'distributorName': 'Distributor Name',
+  'distributorCity': 'Distributor City',
+  'distributorState': 'Distributor State',
+  'distributorGroup': 'Distributor Group',
+  'accountCode': 'Account Code',
+  'accountName': 'Account Name',
+  'accountClassification': 'Account Classification',
+  'accountCity': 'Account City',
+  'accountState': 'Account State',
+  'accountRegion': 'Account Region',
+  'accountGroup': 'Account Group',
+  'accountType': 'Account Type',
+  'accountSegmentation': 'Account Segmentation',
+  'accountCityTier': 'Account City Tier',
+  'isActive': 'Is Active',
+  'surgeonCode': 'Surgeon Code',
+  'surgeonName': 'Surgeon Name',
+  'dateOfSurgery': 'Date Of Surgery',
+  'wwidForFieldStaffByDist': 'WWID For Field Staff By Dist',
+  'nameOfFieldStaffByDist': 'Name Of Field Staff By Dist',
+  'dpPriceSeqId': 'DP Price Seq Id',
+  'region': 'Region',
+  'fswwid': 'FS WWID',
+  'fieldStaffName': 'Field Staff Name',
+  'fsTerritory': 'FS Territory',
+  'suwwid': 'SU WWID',
+  'supervisorName': 'Supervisor Name',
+  'suTerritory': 'SU Territory',
+  'rsmwwid': 'RSM WWID',
+  'rsmName': 'RSM Name',
+  'rsmTerritory': 'RSM Territory',
+  'productCode': 'Product Code',
+  'productDescription': 'Product Description',
+  'uom': 'UOM',
+  'conversionFactor': 'Conversion Factor',
+  'reportingUOM': 'Reporting UOM',
+  'quantity': 'Quantity',
+  'jjmiStandardPrice': 'JJMI Standard Price',
+  'distributorPurchasePrice': 'Distributor Purchase Price',
+  'distributorGrossPurchasePrice': 'Distributor Gross Purchase Price',
+  'distributorGrossPurchaseValue': 'Distributor Gross Purchase Value',
+  'productCategory': 'Product Category',
+  'productBrand': 'Product Brand',
+  'productGroup': 'Product Group',
+  'productLine': 'Product Line',
+  'batchNo': 'Batch No',
+  'dealerEndCustomerPrice': 'Dealer End Customer Price',
+  'stdNRToDealer': 'STD NR To Dealer',
+  'stdNRFromTemplate': 'STD NR From Template',
+  'totalJnjSaleValueToDealer': 'Total JNJ Sale Value To Dealer',
+  'totalDealerSaleValueToCustomer': 'Total Dealer Sale Value To Customer',
+  'diffActualNRSTD': 'Diff Actual NR STD',
+  'totalDiff': 'Total Diff',
+  'finalSaleValue': 'Final Sale Value',
+  'finalTotalSaleValue': 'Final Total Sale Value',
+  'distributorMargin': 'Distributor Margin',
+  'sraNo': 'SRA No',
+  'sraEffectiveFromDate': 'SRA Effective From Date',
+  'sraEffectiveToDate': 'SRA Effective To Date',
+  'sraFinalApprovedDate': 'SRA Final Approved Date',
+  'surgeryWithinSRAPeriod': 'Surgery Within SRA Period',
+  'remark': 'Remark',
+  'orgSegment': 'Org Segment',
+  'territorySeqNo': 'Territory Seq No',
   'materialNumber': 'Material Number',
   'materialDescription': 'Material Description',
   'plant': 'Plant',
-  'quantity': 'Quantity',
   'storage': 'Storage Location',
   'batch': 'Batch',
   'expiryDate': 'Expiry Date',
-  'uom': 'UOM',
   'value': 'Value',
   'reason': 'Reason',
   'disposalDate': 'Disposal Date'
 };
 
-function useData(rowLength: number, columnLength: number) {
-  // Default columns that will show immediately on render
- const defaultColumns: GridColDef[] = [
+const dateColumnFields = [
+  'dataMonth',
+  'billDocDate',
+  'dateOfSurgery',
+  'sraEffectiveFromDate',
+  'sraEffectiveToDate',
+  'sraFinalApprovedDate',
+  'expiryDate',
+  'disposalDate'
+];
+
+// Default columns that will show immediately on render
+const defaultColumns: GridColDef[] = [
   { field: 'franchise', headerName: customHeaderMappings['franchise'] || 'Franchise', width: 150, align: 'center', headerAlign: 'center' },
   { field: 'subFranchise', headerName: customHeaderMappings['subFranchise'] || 'Sub Franchise', width: 150, align: 'center', headerAlign: 'center' },
   { field: 'documentType', headerName: customHeaderMappings['documentType'] || 'Document Type', width: 150, align: 'center', headerAlign: 'center' },
@@ -121,13 +245,21 @@ function useData(rowLength: number, columnLength: number) {
   { field: 'remark', headerName: customHeaderMappings['remark'] || 'Remark', width: 150, align: 'center', headerAlign: 'center' },
   { field: 'orgSegment', headerName: customHeaderMappings['orgSegment'] || 'Org Segment', width: 150, align: 'center', headerAlign: 'center' },
   { field: 'territorySeqNo', headerName: customHeaderMappings['territorySeqNo'] || 'Territory Seq No', width: 180, align: 'center', headerAlign: 'center' }
-];
-  
+].map(column => {
+  if (dateColumnFields.includes(column.field)) {
+    return {
+      ...column,
+      valueFormatter: (params) => formatToCustomDate(params.value)
+    };
+  }
+  return column;
+});;
+
+function useData(rowLength: number, columnLength: number) {
   const [data, setData] = React.useState<GridData>({ columns: defaultColumns, rows: [] });
   const [payloadInfo, setPayloadInfo] = React.useState<{ franchise?: string, MonthDate?: string }>({});
-  const [totalCount, setTotalCount] = React.useState(0); // Track total rows
-  const [isLoading, setIsLoading] = React.useState(true); // Track loading state
-  const router = useRouter();
+  const [totalCount, setTotalCount] = React.useState(0);
+  const [isLoading, setIsLoading] = React.useState(true);
 
   React.useEffect(() => {
     async function fetchData() {
@@ -154,67 +286,37 @@ function useData(rowLength: number, columnLength: number) {
         const response = await axios.post('/api/report', payload);
         let rawData = response.data.result;
 
-        // ✅ Slice first 3 records
-        if (Array.isArray(rawData) && rawData.length > 3) {
-          rawData = rawData.slice(3);
-        }
-
         if (Array.isArray(rawData) && rawData.length > 0) {
+          // Get all the column keys from the first data row
           const allKeys = Object.keys(rawData[0]);
 
-          // ✅ Start from 'franchise' onward
-          const startIndex = allKeys.indexOf('franchise');
-          if (startIndex === -1) {
-            console.error("'franchise' field not found in data.");
-            setIsLoading(false);
-            return;
-          }
+          // ✅ FIXED: Skip only the first 3 columns, not rows
+          // This will start displaying from the 4th column onward (index 3 and greater)
+          const columnsToSkip = 3;
+          const displayKeys = allKeys.slice(columnsToSkip);
 
-          const displayKeys = allKeys.slice(startIndex);
-          const sampleSize = Math.min(20, rawData.length);
-          const sampleRows = rawData.slice(0, sampleSize);
+          // Create a filtered version of the default columns that only includes
+          // fields that exist in the data
+          const filteredColumns = defaultColumns.filter(col =>
+            displayKeys.includes(col.field)
+          );
 
-          // ✅ Build columns from 'franchise' onward
-          const columns: GridColDef[] = displayKeys.map((key) => {
-            let maxLength = key.length;
-            for (let i = 0; i < sampleRows.length; i++) {
-              const value = sampleRows[i][key];
-              if (value !== null && value !== undefined) {
-                maxLength = Math.max(maxLength, value.toString().length);
-              }
-            }
-
-            const width = Math.min(Math.max(maxLength * 9, 100), 300);
-
-            // Use custom header mapping if available, otherwise capitalize
-            const headerName = customHeaderMappings[key] || capitalizeFirstLetter(key);
-
-            return {
-              field: key,
-              headerName: headerName,
-              width,
-              align: 'center',
-              headerAlign: 'center',
-              renderCell: (params) => (
-                <span>
-                  {params.value !== null && params.value !== undefined 
-                    ? capitalizeFirstLetter(params.value.toString()) 
-                    : '-'}
-                </span>
-              ),
-            };
-          });
-
-          // ✅ Build rows using only display keys
+          // Build rows using actual data fields
           const rows = rawData.map((row, index) => {
             const formattedRow: any = { id: index };
             for (const key of displayKeys) {
-              formattedRow[key] = row[key] ?? '-';
+              if (key === 'dataMonth') {
+                formattedRow[key] = formatMonthYear(row[key] ?? '-');
+              } else if (key.toLowerCase().includes('date')) {
+                formattedRow[key] = formatToCustomDate(row[key] ?? '-');
+              } else {
+                formattedRow[key] = row[key] ?? '-';
+              }
             }
             return formattedRow;
           });
 
-          setData({ columns, rows });
+          setData({ columns: filteredColumns, rows });
           setTotalCount(rawData.length);
         } else {
           console.warn('Empty or invalid data from API');
@@ -224,9 +326,8 @@ function useData(rowLength: number, columnLength: number) {
         }
       } catch (error) {
         console.error('Failed to load data:', error);
+        // Keep default columns but clear rows on error
         setData(prevData => ({ columns: prevData.columns, rows: [] }));
-        // throw new Error("Failed to load data");
-        router.push("/error");
       } finally {
         setIsLoading(false);
       }
@@ -238,9 +339,9 @@ function useData(rowLength: number, columnLength: number) {
   return { data, payloadInfo, totalCount, isLoading };
 }
 
+
 export default function ColumnVirtualizationGrid() {
   const { data, payloadInfo, totalCount, isLoading } = useData(100, 1000);
-  const router = useRouter();
   // For popover
   const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null);
   // For search functionality
@@ -269,47 +370,47 @@ export default function ColumnVirtualizationGrid() {
   const exportToExcel = () => {
     // Close popover
     handleClose();
-    
+
     // If no data, don't proceed
     if (!data.rows || data.rows.length === 0) {
       console.warn("No data to export");
       return;
     }
-    
+
     try {
       // Format data for Excel - remove the 'id' property which is only for the grid
       const exportData = data.rows.map(row => {
         const rowData: any = {};
         data.columns.forEach(col => {
-          // Capitalize first letter for Excel export too
           const value = row[col.field];
-          rowData[col.field] = typeof value === 'string' ? capitalizeFirstLetter(value) : value;
+          if (col.field === 'dataMonth') {
+            rowData[col.field] = formatMonthYear(value);
+          } else if (col.field.toLowerCase().includes('date')) {
+            rowData[col.field] = formatToCustomDate(value);
+          } else {
+            rowData[col.field] = typeof value === 'string' ? capitalizeFirstLetter(value) : value;
+          }
         });
         return rowData;
       });
-      
+
       // Create worksheet
       const ws = XLSX.utils.json_to_sheet(exportData);
-      
+
       // Create workbook
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Data");
-      
+
       // Generate file name
-      const fileName = `DumpReport_${payloadInfo.franchise || 'All'}_${
-        payloadInfo.MonthDate ? formatDate(payloadInfo.MonthDate) : new Date().toLocaleDateString()
-      }.xlsx`;
-      
+      const fileName = `DumpReport_${payloadInfo.franchise || 'All'}_${payloadInfo.MonthDate ? formatDate(payloadInfo.MonthDate) : new Date().toLocaleDateString()
+        }.xlsx`;
+
       // Write and download
       XLSX.writeFile(wb, fileName);
-      
+
       console.log("Excel export successful");
     } catch (error) {
       console.error("Failed to export Excel:", error);
-      // throw new Error("Excel export failed");
-      router.push("/error");
-      
-
     }
   };
 
@@ -321,7 +422,7 @@ export default function ColumnVirtualizationGrid() {
   // Filter rows based on search
   const filteredRows = React.useMemo(() => {
     if (!searchText.trim()) return data.rows;
-    
+
     return data.rows.filter(row => {
       return Object.entries(row).some(([key, value]) => {
         if (key === 'id') return false; // Skip the id field
@@ -363,25 +464,25 @@ export default function ColumnVirtualizationGrid() {
 
       <div style={{ backgroundColor: '#fff9f9' }}>
         <div style={{ marginLeft: '40px', marginRight: '40px', borderColor: '#fceeee' }} >
-          <h2 style={{ marginTop: '11px', marginBottom: '15px', fontSize: '25px', fontWeight: '800', color: 'rgb(52, 45, 45)' }} className={classess.font}>
-            Dump Report
-            <span className='text-[18px] font-medium'>
+          <h2 style={{ marginTop: '11px', marginBottom: '15px', fontSize: '26px', fontWeight: '800', color: 'rgb(52, 45, 45)' }} className={classess.font}>
+            Dump Report 
+            <span className='text-[18px] font-medium '>
               {payloadInfo.franchise && payloadInfo.MonthDate && ` : ${payloadInfo.franchise}, ${formatDate(payloadInfo.MonthDate)}`}
             </span>
           </h2>
 
           {/* grid box  */}
-          <div style={{ height: '350px' }} className='border border-[#fceeee] rounded-xl bg-white shadow-sm'>
+          <div style={{ height: '430px' }} className='border border-[#fceeee] rounded-xl bg-white shadow-sm'>
             <div style={{ marginLeft: '25px', marginRight: '25px' }} className="flex items-center justify-center h-[85%]">
-              <div style={{ height: 290, width: '100%' }}>
+              <div style={{ height: 360, width: '100%' }}>
 
                 {/* top section  */}
-                <div style={{ marginBottom: '10px' }} className="flex items-center justify-between rounded-lg">
+                <div style={{ marginBottom: '10px', paddingTop : '7px' }} className="flex items-center justify-between rounded-lg">
                   {/* Left Section */}
-                  <p style={{ fontSize: '13px', fontWeight: '700' }}
+                  <p style={{ fontSize: '14px', fontWeight: '600' }}
                     className="text-[#342d2d] font-large">
                     Total No. of Records <span
-                      style={{ fontSize: '12px', fontWeight: '400' }}
+                      style={{ fontSize: '14px', fontWeight: '500' }}
                       className="text-black font-large hover:bg-[#f5ebeb] rounded-2xl">[{isLoading ? '...' : totalCount}]</span>
                     {isLoading && <span className="ml-2 text-gray-500">(Loading...)</span>}
                   </p>
@@ -389,19 +490,22 @@ export default function ColumnVirtualizationGrid() {
                   {/* Right Section */}
                   <div className="flex items-center space-x-4">
                     {/* Search Input */}
-                    <div className="relative w-[260px]">
+                    <div className="relative w-[300px]" >
                       <input
-                        style={{ margin: '2px', paddingLeft: '28px' }}
+                        style={{ margin: '2px', paddingLeft: '28px', backgroundColor : 'transparent' , }} 
+                      
                         type="text"
                         placeholder="Search"
+      
                         value={searchText}
                         onChange={handleSearchChange}
-                        className="w-full pl-10 pr-4 h-10 border border-[#fceeee] rounded-md bg-[#fff9f9] outline-none focus:border-black"
+                        className="w-full pl-10 pr-4 h-10 border border-[#dad7d7] rounded-md hover:border-[#000] outline-none focus:border-black"
                       />
                       <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
                         <SearchOutlinedIcon fontSize="small" />
                       </div>
                     </div>
+
 
                     {/* Filters Button */}
                     <button
@@ -412,7 +516,7 @@ export default function ColumnVirtualizationGrid() {
                     </button>
 
                     {/* Export Button */}
-                    <button 
+                    <button
                       aria-describedby={id}
                       onClick={handleExportClick}
                       style={{ margin: '4px', padding: '4px', fontSize: '13px', fontWeight: '700' }}
@@ -420,7 +524,7 @@ export default function ColumnVirtualizationGrid() {
                       <FileDownloadOutlinedIcon />
                       Export
                     </button>
-                    
+
                     {/* Export Popover */}
                     <Popover
                       id={id}
@@ -444,7 +548,7 @@ export default function ColumnVirtualizationGrid() {
                         },
                       }}
                     >
-                      <div 
+                      <div
                         onClick={exportToExcel}
                         style={{ padding: '10px 15px', cursor: 'pointer', fontSize: '13px' }}
                         className="hover:bg-[#f5ebeb]"
@@ -457,6 +561,7 @@ export default function ColumnVirtualizationGrid() {
 
                 {/* Display headers even while loading */}
                 <DataGrid
+                  initialState={{ density: 'standard', }}
                   columns={data.columns}
                   rows={isLoading ? [] : filteredRows}
                   loading={isLoading}
@@ -499,10 +604,10 @@ export default function ColumnVirtualizationGrid() {
                       fontFamily: 'Arial, sans-serif',
                       color: 'rgb(52, 45, 45)',
                       fontWeight: '700',
-                      fontSize: '13px',
+                      fontSize: '14px',
                       display: 'flex',
                       justifyContent: 'flex-start',
-                      padding: '8px 16px',
+                      padding: '2px 16px',
                       margin: 0,
                     },
                     '& .MuiDataGrid-columnHeaderTitle': {

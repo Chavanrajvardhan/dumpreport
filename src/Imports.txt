@@ -12,3 +12,7 @@ npm i @mui/x-data-grid
 npm install xlsx
 
 npm install geist
+
+npm install react-icons
+
+npm install @toolpad/core

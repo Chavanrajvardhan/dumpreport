@@ -124,7 +124,7 @@ const AppCard: React.FC<{ item: ApplicationData }> = ({ item }) => {
       }
 
       if (validApp.data.message === "Success") {
-        router.push("/dashboard");
+        router.push("/coe/report");
       } else {
         setLoading(false);
         alert("You are not authorized to access this application");

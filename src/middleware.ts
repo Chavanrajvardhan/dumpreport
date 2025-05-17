@@ -32,6 +32,7 @@ export const config = {
     '/home',
     '/dashboard',
     '/allprojectaccess',
+    '/Ddashboard/:path*',
   ],
 
 }

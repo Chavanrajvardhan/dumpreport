@@ -19,3 +19,22 @@ export interface ApplicationData {
   app: ApplicationData;
   appToken: string;
 }
+
+
+export interface OrganizationSegment {
+  id: string;
+  code: string;
+  description: string;
+}
+
+export interface Franchise {
+  franchise: string;
+}
+ 
+
+export interface FormPayload {
+  MonthDate: string | null;
+  franchise: string | null;
+  distributorId: string;
+  orgSegment: string | null;
+}
