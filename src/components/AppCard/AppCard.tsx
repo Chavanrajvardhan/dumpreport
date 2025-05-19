@@ -143,10 +143,10 @@ const AppCard: React.FC<{ item: ApplicationData }> = ({ item }) => {
     <>
     {loading && <LoadingScreen/>}
     <div onClick={handleClick} className={stylecss.card}>
-      <Image className={stylecss.image} src={"/jnj_logo.png"} alt={"jaj_logo"} width={65} height={20} />
+      <Image className={stylecss.image} src={"/jnj_logo.png"} alt={"jaj_logo"} width={57} height={14} />
       <div className={stylecss.text}>
         <div className={stylecss.font1}>{item.applicationName}</div>
-        <div className={stylecss.font2}>{item.applicationRole}</div>
+        <div className={stylecss.font2}><i>{item.applicationRole}</i></div>
         <div className={stylecss.font3}>{item.applicationDescription}</div>
       </div>
     </div>

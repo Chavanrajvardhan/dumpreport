@@ -1,7 +1,8 @@
 import * as React from 'react';
-import { Box, Typography, Avatar, Divider } from '@mui/material';
+import { Box, Typography, Avatar } from '@mui/material';
 import { useSession } from '@toolpad/core/useSession';
 import { Session } from '@toolpad/core/AppProvider';
+import PersonIcon from '@mui/icons-material/Person';
 
 export interface CustomSession extends Session {
   org: {
@@ -18,24 +19,24 @@ export function UserOrg() {
     return <Typography>No user session available</Typography>;
   }
 
-  const { name, image } = session.user;
+  const { name } = session.user;
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'left'}}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'left', marginTop: '8px' }}>
       <Avatar
-        alt={name}
-        src={image}
         sx={{
-          width: 45,
-          height: 45,
-          bgcolor: '#e3e2e2',         
-          borderRadius: '999px',         
+          width: 40,
+          height: 40,
+          bgcolor: '#e3e2e2',
+          borderRadius: '999px',
         }}
-      />
-      <Typography variant="subtitle1" fontWeight="bold" fontSize='14px'>
+      >
+        <PersonIcon sx={{ color: 'rgb(110, 103, 103)', fontSize: 30 }} />
+      </Avatar>
+      <Typography variant="subtitle1" fontWeight="bold" fontSize="14px">
         {name}
       </Typography>
-      <Typography variant="caption" color="text.secondary"  fontSize='12px'>
+      <Typography variant="caption" fontSize="12px">
         J&J COE
       </Typography>
     </Box>

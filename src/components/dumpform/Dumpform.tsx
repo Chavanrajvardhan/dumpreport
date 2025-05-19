@@ -307,6 +307,7 @@ const DumpReportPage: React.FC = () => {
                   onChange={handleDateChange}
                   format="MMM-YYYY"
                   views={["month", "year"]}
+                    maxDate={dayjs('2025-12-31')} // stops year at 2025, all months available
                   enableAccessibleFieldDOMStructure={false}
                   slots={{
                     textField: (params) => <CustomTextField {...params} />,
