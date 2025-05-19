@@ -19,13 +19,10 @@ import ListItemText from '@mui/material/ListItemText';
 import { Collapse } from '@mui/material';
 import styles from './page.module.css';  // Import the CSS module
 import Image from 'next/image';
-import DumpReportPage from '../../components/dumpform/Dumpform';
-import { truncate } from 'fs/promises';
 import sidebarLogo from "../../../public/jnj_logo_white.png";
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 import LogoutProp from '../../components/Logout/LogoutProp';
 import { ExpandLess, ExpandMore } from '@mui/icons-material';
-import Typography from '@mui/material/Typography';
 
 //Import For Icons
 import FolderZipIcon from '@mui/icons-material/FolderZip';
@@ -37,13 +34,13 @@ import Reload from "../../../public/reload.png";
 import link from "../../../public/link.png";
 import Reupload from "../../../public/reupload.png";
 import { usePathname } from 'next/navigation';
-import LoadingScreen from '../../components/LoadingScreen/LoadingScreen';
 
 
 //Import for Account
 import { Account } from '@toolpad/core/Account';
 import { AppProvider } from '@toolpad/core/AppProvider';
 import { UserOrg, CustomSession } from './UserOrg';
+import LoadingScreen from '@/components/LoadingScreen/LoadingScreen';
 
 
 export const LoadingContext = createContext({
@@ -218,39 +215,45 @@ export default function layout({ children }: { children: React.ReactNode }) {
         // Store the normalized selected sub-item
         setSelectedSubItem(normalize(text));
         setLoading(true);
-
         router.push(`/${route}`);
     };
-
-    // This useEffect initializes submenu state based on the URL when component loads
-    useEffect(() => {
-        // Find the menu item that contains the current path in its subItems
-        const menuWithCurrentPath = menuItems.find(item =>
-            item.subItems?.some(subItem => normalize(subItem) === pathLastSegment)
-        );
-
-        if (menuWithCurrentPath) {
-            setOpenSubmenu(menuWithCurrentPath.text);
-
-            // Find which sub-item matches the current path
-            const matchingSubItem = menuWithCurrentPath.subItems?.find(
-                subItem => normalize(subItem) === pathLastSegment
-            );
-
-            if (matchingSubItem) {
-                setSelectedSubItem(normalize(matchingSubItem));
-            }
-        }
-
-        console.log("Path last segment:", pathLastSegment);
-        console.log("Selected sub item:", selectedSubItem);
-    }, [pathname, pathLastSegment]);
-
 
     const loadingContextValue = {
         loading,
         setLoading
     };
+
+    // This useEffect initializes submenu state based on the URL when component loads
+useEffect(() => {
+    if (openSubmenu !== null) return; // Don't override user toggle
+ 
+    const menuWithCurrentPath = menuItems.find(item => 
+        item.subItems?.some(subItem => normalize(subItem) === pathLastSegment)
+    );
+ 
+    if (menuWithCurrentPath) {
+        setOpenSubmenu(menuWithCurrentPath.text);
+ 
+        const matchingSubItem = menuWithCurrentPath.subItems?.find(
+            subItem => normalize(subItem) === pathLastSegment
+        );
+ 
+        if (matchingSubItem) {
+            setSelectedSubItem(normalize(matchingSubItem));
+        }
+    }
+}, [pathname, pathLastSegment, openSubmenu]);
+
+    // Check if the current path is related to the Report section
+    const isReportActive = () => {
+        // Check if the path contains 'report' or any Report subitem is selected
+        const reportItem = menuItems.find(item => item.text === 'Report');
+        if (!reportItem || !reportItem.subItems) return false;
+
+        return reportItem.subItems.some(subItem => normalize(subItem) === selectedSubItem) ||
+            pathname.toLowerCase().includes('report');
+    };
+
 
     return (
         <LoadingContext.Provider value={loadingContextValue}>
@@ -282,7 +285,16 @@ export default function layout({ children }: { children: React.ReactNode }) {
                                 height={35}
                             />
                         </Box>
-                        <div style={{ marginRight: '30px' }} >
+                        
+                        <div style={{ display:"flex", flexDirection: 'row', marginRight: '30px' }} >
+                             <Image
+                                src={"/contact.svg"}
+                                alt="Contact icon"
+                                width={33}
+                                height={33}
+                                style={{
+                                    marginRight: '10px',
+                                }}/>
                             <LogoutProp />
                         </div>
                     </Toolbar>
@@ -357,17 +369,32 @@ export default function layout({ children }: { children: React.ReactNode }) {
                                 const itemPath = normalize(item.text);
                                 const isSubItemActive = item.subItems?.some(sub => pathLastSegment === normalize(sub));
                                 const isActive = pathname.includes(itemPath) || isSubItemActive;
+                                const isReportSection = item.text === 'Report' && isReportActive();
 
                                 return (
                                     <React.Fragment key={item.text}>
                                         <ListItem disablePadding>
                                             <ListItemButton
                                                 onClick={() => item.subItems ? handleClick(item.text) : handleMainMenu(item.text)}
-                                                className={`${styles.listBtn} ${isActive ? styles.selected : ''}`}
+                                                className={`${styles.listBtn} ${isActive || isReportSection ? styles.selected : ''}`}
                                             >
-                                                <ListItemIcon>{item.icon}</ListItemIcon>
+                                                <ListItemIcon
+                                                    className={isActive || isReportSection ? styles.activeIcon : ''}
+                                                >
+                                                    {React.isValidElement(item.icon) && item.icon.type === Image ? (
+                                                        <div className={isActive || isReportSection ? styles.activeImageIcon : ''}>
+                                                            {item.icon}
+                                                        </div>
+                                                    ) : (
+                                                        React.cloneElement(item.icon, {
+                                                            style: {
+                                                                color: (isActive || isReportSection) ? 'rgb(215 36 12)' : 'inherit'
+                                                            }
+                                                        })
+                                                    )}
+                                                </ListItemIcon>
                                                 <ListItemText primary={item.text} />
-                                                {item.subItems ? (openSubmenu === item.text || isSubItemActive ? <ExpandLess /> : <ExpandMore />) : null}
+                                                {item.subItems ? (openSubmenu === item.text || isSubItemActive ? <ExpandLess sx={{   transform: 'rotate(180deg)'}} /> : <ExpandMore sx={{   transform: 'rotate(-90deg)'}} />) : null}
                                             </ListItemButton>
                                         </ListItem>
                                         {item.subItems && (
@@ -380,13 +407,15 @@ export default function layout({ children }: { children: React.ReactNode }) {
                                                         return (
                                                             <ListItemButton
                                                                 key={subItem}
-                                                                sx={{ pl: 4 }}
+                                                                sx={{ pl: 4 ,}}
                                                                 onClick={() => handleMainMenu(subItem)}
                                                                 className={`${styles.subItems}`}
                                                             >
                                                                 <ListItemText
                                                                     primary={subItem}
-                                                                    className={`${isSubItemSelected ? styles.subItemSelected : ''}`}
+                                                                    
+                                                                    className={`${isSubItemSelected ? `${styles.subItemSelected} ` : ''}`}
+                                                                    disableTypography
                                                                 />
                                                             </ListItemButton>
                                                         );
@@ -403,6 +432,7 @@ export default function layout({ children }: { children: React.ReactNode }) {
 
                 <main className={`${styles.mainContent} ${open ? styles.open : ''}`}>
                     <div className={styles.drawerHeader2} />
+                    {loading && <LoadingScreen />}
                     {children}
                 </main>
             </Box>

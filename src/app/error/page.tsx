@@ -7,8 +7,11 @@ import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
 export default function SessionExpired() {
   const router = useRouter();
  
-  const handleLogin = () => {
+  const handleLogin =async () => {
+    const { logoutAction } = await import('../../app/api/user/logout/route');
+    await logoutAction();
     router.push('/login');
+    // setIsLoading(false);
   };
  
   return (

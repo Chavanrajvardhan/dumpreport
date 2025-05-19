@@ -269,7 +269,7 @@ const DumpReportPage: React.FC = () => {
       MonthDate: month ? format(month, "yyyy-MM-dd") : null,
       franchise: selectedFranchise || null,
       distributorId: distributor === "ALL" ? "0" : distributor,
-      orgSegment: selectedSegment || null,
+      orgSegment: selectedSegment === "ALL" ? null : selectedSegment
     };
  
     if (typeof window !== "undefined") {
@@ -325,13 +325,13 @@ const DumpReportPage: React.FC = () => {
                         height: "300px",
                        
                         "& .MuiYearCalendar-root .Mui-selected": {
-                          backgroundColor: "#d51900 !important",
+                          backgroundColor: "rgb(213, 25, 0) !important",
                           color: "white !important",
  
                          
                         },
                         "& .MuiMonthCalendar-root .Mui-selected": {
-                          backgroundColor: "#d51900 !important",
+                          backgroundColor: "rgb(213, 25, 0) !important",
                           color: "white !important",
                        
                         },
@@ -450,6 +450,7 @@ const DumpReportPage: React.FC = () => {
                       theme
                     )}
                   >
+                   
                     {segment.description}
                   </MenuItem>
                 ))}

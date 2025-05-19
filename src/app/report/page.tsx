@@ -464,9 +464,9 @@ export default function ColumnVirtualizationGrid() {
           </h2>
 
           {/* grid box  */}
-          <div style={{ height: '430px' }} className='border border-[#fceeee] rounded-xl bg-white shadow-sm'>
+          <div style={{ height: '390px' }} className='border border-[#fceeee] rounded-xl bg-white shadow-sm'>
             <div style={{ marginLeft: '25px', marginRight: '25px' }} className="flex items-center justify-center h-[85%]">
-              <div style={{ height: 360, width: '100%' }}>
+              <div style={{ height: 300, width: '100%' }}>
 
                 {/* top section  */}
                 <div style={{ marginBottom: '10px', paddingTop : '7px' }} className="flex items-center justify-between rounded-lg">
@@ -475,8 +475,7 @@ export default function ColumnVirtualizationGrid() {
                     className="text-[#342d2d] font-large">
                     Total No. of Records <span
                       style={{ fontSize: '14px', fontWeight: '500' }}
-                      className="text-black font-large hover:bg-[#f5ebeb] rounded-2xl">[{isLoading ? '...' : totalCount}]</span>
-                    {isLoading && <span className="ml-2 text-gray-500">(Loading...)</span>}
+                      className="text-black font-large hover:bg-[#f5ebeb] rounded-2xl">[{ totalCount}]</span>
                   </p>
 
                   {/* Right Section */}
@@ -553,12 +552,12 @@ export default function ColumnVirtualizationGrid() {
 
                 {/* Display headers even while loading */}
                 <DataGrid
-                  initialState={{ density: 'standard', }}
+                  initialState={{ density: 'compact', }}
                   columns={data.columns}
                   rows={isLoading ? [] : filteredRows}
                   loading={isLoading}
-                  components={{
-                    NoRowsOverlay: () => (
+                  slots={{
+                    noRowsOverlay: () => (
                       <div className="flex flex-col items-center justify-center h-full">
                         {isLoading ? (
                           <div className="flex flex-col items-center">
