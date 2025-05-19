@@ -12,6 +12,7 @@ import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import Popover from '@mui/material/Popover';
 import CircularProgress from '@mui/material/CircularProgress';
 import * as XLSX from 'xlsx';
+import { useRouter } from 'next/navigation';
 
 export interface DataRowModel {
   id: GridRowId;
@@ -260,6 +261,7 @@ function useData(rowLength: number, columnLength: number) {
   const [payloadInfo, setPayloadInfo] = React.useState<{ franchise?: string, MonthDate?: string }>({});
   const [totalCount, setTotalCount] = React.useState(0);
   const [isLoading, setIsLoading] = React.useState(true);
+  const router = useRouter();
 
   React.useEffect(() => {
     async function fetchData() {
@@ -320,13 +322,12 @@ function useData(rowLength: number, columnLength: number) {
           setTotalCount(rawData.length);
         } else {
           console.warn('Empty or invalid data from API');
-          // Keep default columns but clear rows
           setData(prevData => ({ columns: prevData.columns, rows: [] }));
           setTotalCount(0);
         }
       } catch (error) {
         console.error('Failed to load data:', error);
-        // Keep default columns but clear rows on error
+        router.push('/error'); 
         setData(prevData => ({ columns: prevData.columns, rows: [] }));
       } finally {
         setIsLoading(false);
@@ -341,10 +342,8 @@ function useData(rowLength: number, columnLength: number) {
 
 
 export default function ColumnVirtualizationGrid() {
-  const { data, payloadInfo, totalCount, isLoading } = useData(100, 1000);
-  // For popover
+  const { data, payloadInfo, totalCount, isLoading } = useData(100, 1000)
   const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null);
-  // For search functionality
   const [searchText, setSearchText] = React.useState('');
 
   // Format for franchise and month display
@@ -366,12 +365,9 @@ export default function ColumnVirtualizationGrid() {
   const open = Boolean(anchorEl);
   const id = open ? 'export-popover' : undefined;
 
-  // Function to export data to Excel
   const exportToExcel = () => {
-    // Close popover
     handleClose();
 
-    // If no data, don't proceed
     if (!data.rows || data.rows.length === 0) {
       console.warn("No data to export");
       return;
@@ -394,18 +390,14 @@ export default function ColumnVirtualizationGrid() {
         return rowData;
       });
 
-      // Create worksheet
       const ws = XLSX.utils.json_to_sheet(exportData);
 
-      // Create workbook
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Data");
 
-      // Generate file name
       const fileName = `DumpReport_${payloadInfo.franchise || 'All'}_${payloadInfo.MonthDate ? formatDate(payloadInfo.MonthDate) : new Date().toLocaleDateString()
         }.xlsx`;
 
-      // Write and download
       XLSX.writeFile(wb, fileName);
 
       console.log("Excel export successful");
@@ -588,6 +580,7 @@ export default function ColumnVirtualizationGrid() {
                     },
                     '& .MuiDataGrid-cell': {
                       borderBottom: 'none !important',
+                      borderTop: 'none !important',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'flex-start',
@@ -596,7 +589,7 @@ export default function ColumnVirtualizationGrid() {
                     },
                     '& .MuiDataGrid-columnHeaders': {
                       backgroundColor: '#fff9f9',
-                      borderBottom: 'none',
+                      borderBottom: 'none !important',
                       margin: 0,
                     },
                     '& .MuiDataGrid-columnHeader': {
@@ -604,11 +597,12 @@ export default function ColumnVirtualizationGrid() {
                       fontFamily: 'Arial, sans-serif',
                       color: 'rgb(52, 45, 45)',
                       fontWeight: '700',
-                      fontSize: '14px',
+                      fontSize: '13px',
                       display: 'flex',
                       justifyContent: 'flex-start',
-                      padding: '2px 16px',
+                      padding: '8px 16px',
                       margin: 0,
+                      borderBottom: 'none !important',
                     },
                     '& .MuiDataGrid-columnHeaderTitle': {
                       fontWeight: 700,
@@ -616,13 +610,22 @@ export default function ColumnVirtualizationGrid() {
                       lineHeight: '1.2',
                       textAlign: 'left',
                     },
+                    '& .MuiDataGrid-columnHeaderTitleContainer': {
+                      justifyContent: 'flex-start !important',
+                      alignItems: 'flex-start !important',
+                      textAlign: 'left !important',
+                    },
                     '& .MuiDataGrid-columnSeparator': {
                       display: 'none !important',
                     },
                     '& .MuiDataGrid-row': {
-                      border: 'none',
+                      border: 'none !important',
                       margin: 0,
                       borderBottom: 'none !important',
+                      borderTop: 'none !important',
+                      '&:not(:last-child)': {
+                        borderBottom: 'none !important',
+                      },
                     },
                     '& .MuiDataGrid-row--lastVisible': {
                       borderBottom: 'none !important',
@@ -643,27 +646,28 @@ export default function ColumnVirtualizationGrid() {
                       padding: 0,
                     },
                     '& .MuiDataGrid-footerContainer': {
-                      borderTop: 'none',
+                      borderTop: 'none !important',
                       margin: 0,
                     },
                     '& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within': {
                       outline: 'none',
                     },
                     '& .MuiDataGrid-withBorderColor': {
-                      borderColor: 'transparent',
+                      borderColor: 'transparent !important',
                     },
                     '& .MuiDataGrid-iconSeparator': {
                       display: 'none',
                     },
                     '& .MuiDataGrid-columnHeadersInner': {
                       margin: 0,
+                      borderBottom: 'none !important',
                     },
                     '& .MuiDataGrid-cellContent': {
                       textAlign: 'left',
                     },
                     // More aggressive removal of borders and row spacing
                     '& .MuiDataGrid-root': {
-                      border: 'none',
+                      border: 'none !important',
                     },
                     '& div[data-rowindex]': {
                       margin: 0,
@@ -675,6 +679,24 @@ export default function ColumnVirtualizationGrid() {
                     },
                     // Target any horizontal dividers
                     '& .MuiDataGrid-horizontalDivider': {
+                      display: 'none !important',
+                    },
+                    // Additional selectors to remove borders
+                    '& .MuiDataGrid-window': {
+                      borderBottom: 'none !important',
+                    },
+                    '& .MuiDataGrid-row--editing': {
+                      borderBottom: 'none !important',
+                    },
+                    // Specifically target the internal cell borders
+                    '& .MuiDataGrid-cell, & .MuiDataGrid-cell:focus': {
+                      borderBottom: 'none !important',
+                    },
+                    '& .MuiDataGrid-columnHeader, & .MuiDataGrid-columnHeader:focus': {
+                      borderBottom: 'none !important',
+                    },
+                    // Override any divider lines that might be added
+                    '& .MuiDivider-root': {
                       display: 'none !important',
                     }
                   }}

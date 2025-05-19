@@ -1,8 +1,10 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import styles from "./Dumpform.module.css";
 import axios from "axios";
 import { format } from "date-fns";
+import { LoadingContext } from '../../app/(dashboard)/layout'; // Import the context from your layout
+
  
 // MUI components
 import {
@@ -190,6 +192,8 @@ const CustomTextField = styled(TextField)({
 });
  
 const DumpReportPage: React.FC = () => {
+    const { loading, setLoading } = useContext(LoadingContext);
+
   const theme = useTheme();
  
   // State management
@@ -206,7 +210,9 @@ const DumpReportPage: React.FC = () => {
   // Fetch franchise and organization segment data
   useEffect(() => {
     const fetchInitialData = async () => {
+
       try {
+        setLoading(false);
         const franchiseResponse = await axios.post(
           "/api/formdata/getallfranchise"
         );
@@ -218,12 +224,12 @@ const DumpReportPage: React.FC = () => {
         setOrganizationSegments(segmentData);
       } catch (error) {
         console.error("Error fetching initial data:", error);
-        // router.push("/error");
+        router.push("/error");
       }
     };
  
     fetchInitialData();
-  }, []);
+  }, [setLoading]);
  
   const handleDateChange = (newValue: Dayjs | null) => {
     if (newValue) {
