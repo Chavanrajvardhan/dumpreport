@@ -8,3 +8,5 @@ npm install @emotion/react@^11.14.0 @emotion/styled@^11.14.0 @mui/icons-material
 npm install tailwindcss @tailwindcss/postcss postcss
 
 npm i @mui/x-data-grid
+
+npm install xlsx  //for downloading exel file 

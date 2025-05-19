@@ -23,8 +23,8 @@ export async function POST(request: NextRequest) {
 
         // Construct the Referer URL
         const refererUrl = `https://testapp1.rediport.in/dashboardparam/territoryreport?franchise=${encodeURIComponent(safePayload.franchise)}&selectedDate=${encodeURIComponent(safePayload.MonthDate)}&rowData=%20&templateName=GSG%20&distributorId=${encodeURIComponent(safePayload.distributorId)}&orgSegment=${encodeURIComponent(safePayload.orgSegment)}`;
-        console.log(refererUrl);
-
+        console.log("refererUrl", refererUrl);
+        
         const headersInfo = {
             headers: {
                 Authorization: token,
@@ -32,19 +32,22 @@ export async function POST(request: NextRequest) {
                 Referer: refererUrl
             }
         };
-
-
+        
+        console.log("header",headersInfo)
+        
+        
         // const dataPayload = {
-        //     MonthDate: "2025-01-01", franchise: "ENDO", distributorId: "0", orgSegment: null
-        // };
-
-        const res = await axios.post(
+            //     MonthDate: "2025-01-01", franchise: "ENDO", distributorId: "0", orgSegment: null
+            // };
+            console.log("payload",payload)
+            
+            const res = await axios.post(
             "https://testapp1.rediport.in/api/TransactionReport/getterritorydumpreportdara",
             payload,
             headersInfo
         );
 
-        console.log("res", res);
+        console.log("res", res.data);
 
         if (!res) {
             return NextResponse.json({ error: "No data found" }, { status: 404 });
