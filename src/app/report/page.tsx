@@ -289,11 +289,8 @@ function useData(rowLength: number, columnLength: number) {
         let rawData = response.data.result;
 
         if (Array.isArray(rawData) && rawData.length > 0) {
-          // Get all the column keys from the first data row
           const allKeys = Object.keys(rawData[0]);
 
-          // ✅ FIXED: Skip only the first 3 columns, not rows
-          // This will start displaying from the 4th column onward (index 3 and greater)
           const columnsToSkip = 3;
           const displayKeys = allKeys.slice(columnsToSkip);
 
