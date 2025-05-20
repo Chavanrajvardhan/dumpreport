@@ -238,7 +238,7 @@ export default function layout({ children }: { children: React.ReactNode }) {
             // Add more mappings as needed
         };
 
-        const route = routeMap[text] || '/';
+        const route = routeMap[text];
 
         // Store the normalized selected sub-item
         setSelectedSubItem(normalize(text));

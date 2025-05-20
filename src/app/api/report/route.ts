@@ -88,17 +88,19 @@ export async function POST(request: NextRequest) {
             orgSegment: orgSegment
         };
  
+        // console.log(payload);
+
         // Fallback to default values if any key is null/undefined
-        const safePayload = {
-            MonthDate: payload.MonthDate ?? '0',
-            franchise: payload.franchise ?? '0',
-            distributorId: payload.distributorId ?? '0',
-            orgSegment: payload.orgSegment ?? '0'
-        };
+        // const safePayload = {
+        //     MonthDate: payload.MonthDate ?? '0',
+        //     franchise: payload.franchise ?? '0',
+        //     distributorId: payload.distributorId ?? '0',
+        //     orgSegment: payload.orgSegment ?? null,
+        // };
  
         // // Construct the Referer URL
         const refererUrl = `https://testapp1.rediport.in/dashboardparam/territoryreport?`;
-        console.log("refererUrl", refererUrl);
+        // console.log("refererUrl", refererUrl);
  
         const headersInfo = {
             headers: {
@@ -122,7 +124,7 @@ export async function POST(request: NextRequest) {
             headersInfo
         );
  
-        console.log("res", res.data);
+        // console.log("res", res.data);
  
         if (!res) {
             return NextResponse.json({ error: "No data found" }, { status: 404 });

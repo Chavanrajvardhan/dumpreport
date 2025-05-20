@@ -5,7 +5,7 @@ import axios from "axios";
 import { format } from "date-fns";
 import { LoadingContext } from '../../app/(dashboard)/layout'; // Import the context from your layout
 
- 
+
 // MUI components
 import {
   FormControl,
@@ -26,8 +26,8 @@ import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
 import dayjs, { Dayjs } from "dayjs";
 import { OrganizationSegment, Franchise, FormPayload } from "../../schema/types";
 import { useRouter } from "next/navigation";
- 
- 
+
+
 // Menu props for consistent dropdown behavior
 const MENU_PROPS = {
   PaperProps: {
@@ -42,7 +42,7 @@ const MENU_PROPS = {
     },
   },
 };
- 
+
 // Style utility function for menu items
 function getMenuItemStyle(
   name: string,
@@ -61,10 +61,10 @@ function getMenuItemStyle(
     fontSize: '12px',
     margin: '0px 8px',
     borderRadius: '7px',
-   
+
   };
 }
- 
+
 // Custom styled components
 const selectFieldStyles = {
   m: 1,
@@ -99,7 +99,7 @@ const selectFieldStyles = {
     },
   },
 };
- 
+
 // Custom date picker theme
 const customDatePickerTheme = createTheme({
   components: {
@@ -148,7 +148,7 @@ const customDatePickerTheme = createTheme({
     //     },
     //   },
     // },
- 
+
     MuiMenuItem: {
       styleOverrides: {
         root: {
@@ -163,12 +163,12 @@ const customDatePickerTheme = createTheme({
     },
   },
 });
- 
- 
+
+
 // Styled TextField for date picker
 const CustomTextField = styled(TextField)({
   width: "350px",
- 
+
   height: "50px",
   "& label": {
     color: "gray",
@@ -190,12 +190,12 @@ const CustomTextField = styled(TextField)({
     },
   },
 });
- 
+
 const DumpReportPage: React.FC = () => {
-    const { loading, setLoading } = useContext(LoadingContext);
+  const { loading, setLoading } = useContext(LoadingContext);
 
   const theme = useTheme();
- 
+
   // State management
   const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs().subtract(0, "day"));
   const [month, setMonth] = useState<Date | null>(null);
@@ -205,8 +205,8 @@ const DumpReportPage: React.FC = () => {
   const [organizationSegments, setOrganizationSegments] = useState<OrganizationSegment[]>([]);
   const [selectedSegment, setSelectedSegment] = useState<string>("");
   const router = useRouter();
- 
- 
+
+
   // Fetch franchise and organization segment data
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -218,19 +218,26 @@ const DumpReportPage: React.FC = () => {
         );
         const franchiseData = franchiseResponse.data.result as Franchise[];
         setFranchiseList(franchiseData);
- 
         const segmentResponse = await axios.post("/api/formdata/getorgsegment");
         const segmentData = segmentResponse.data.result as OrganizationSegment[];
-        setOrganizationSegments(segmentData);
+
+        // Add "All" as the first item
+        const updatedSegments: OrganizationSegment[] = [
+          { id: "3", code: "ALL" , description : "ALL"}, // adjust property names as per your OrganizationSegment type
+          ...segmentData,
+        ];
+
+        setOrganizationSegments(updatedSegments);
+
       } catch (error) {
         console.error("Error fetching initial data:", error);
         router.push("/error");
       }
     };
- 
+
     fetchInitialData();
   }, [setLoading]);
- 
+
   const handleDateChange = (newValue: Dayjs | null) => {
     if (newValue) {
       setSelectedDate(newValue);
@@ -245,221 +252,221 @@ const DumpReportPage: React.FC = () => {
       setMonth(null);
     }
   };
- 
+
   // Handler for franchise selection
   const handleFranchiseChange = (event: SelectChangeEvent<string>) => {
     setSelectedFranchise(event.target.value);
   };
- 
+
   // Handler for distributor selection
   const handleDistributorChange = (event: SelectChangeEvent<string>) => {
     setDistributor(event.target.value);
   };
- 
+
   // Handler for segment selection
   const handleSegmentChange = (event: SelectChangeEvent<string>) => {
     setSelectedSegment(event.target.value);
   };
- 
+
   // Form submission handler
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
- 
+
     const payload: FormPayload = {
       MonthDate: month ? format(month, "yyyy-MM-dd") : null,
       franchise: selectedFranchise || null,
       distributorId: distributor === "ALL" ? "0" : distributor,
       orgSegment: selectedSegment === "ALL" ? null : selectedSegment
     };
- 
+
     if (typeof window !== "undefined") {
       localStorage.setItem("formPayload", JSON.stringify(payload));
       window.open("/report", "_blank");
     }
   };
- 
+
   return (
     <ThemeProvider theme={customDatePickerTheme}>
       <div className={styles.container}>
         <main className={styles.main}>
           <h1 className={styles.heading}>Dump Report</h1>
-           <div className={styles.card} style={{ padding: "30px" }}>
-          {/* Month picker with inline styles for alignment */}
-          <div style={{
-            display: "flex",
-            alignItems: "center",
-           
-            marginBottom: "10px",
-            gap: "91px"
-          }}>
-            <label style={{
-              minWidth: "180px",
-              fontSize: "18px",
-              fontWeight: "500",
-   
-              textAlign: "left"
-            }}>Month :</label>
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <DemoContainer components={["DatePicker"]} >
-                <DatePicker
-                  label="Month"
-                  value={selectedDate}
-                  onChange={handleDateChange}
-                  format="MMM-YYYY"
-                  views={["month", "year"]}
+          <div className={styles.card} style={{ padding: "30px" }}>
+            {/* Month picker with inline styles for alignment */}
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+
+              marginBottom: "10px",
+              gap: "91px"
+            }}>
+              <label style={{
+                minWidth: "180px",
+                fontSize: "18px",
+                fontWeight: "500",
+
+                textAlign: "left"
+              }}>Month :</label>
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DemoContainer components={["DatePicker"]} >
+                  <DatePicker
+                    label="Month"
+                    value={selectedDate}
+                    onChange={handleDateChange}
+                    format="MMM-YYYY"
+                    views={["month", "year"]}
                     maxDate={dayjs('2025-12-31')} // stops year at 2025, all months available
-                  enableAccessibleFieldDOMStructure={false}
-                  slots={{
-                    textField: (params) => <CustomTextField {...params} />,
-                  }}
-                  slotProps={{
-                    popper: {
-                      modifiers: [
-                        {
-                          name: "offset",
-                          options: {
-                            offset: [0, 10],
+                    enableAccessibleFieldDOMStructure={false}
+                    slots={{
+                      textField: (params) => <CustomTextField {...params} />,
+                    }}
+                    slotProps={{
+                      popper: {
+                        modifiers: [
+                          {
+                            name: "offset",
+                            options: {
+                              offset: [0, 10],
+                            },
+                          },
+                        ],
+                        sx: {
+                          height: "300px",
+
+                          "& .MuiYearCalendar-root .Mui-selected": {
+                            backgroundColor: "rgb(213, 25, 0) !important",
+                            color: "white !important",
+
+
+                          },
+                          "& .MuiMonthCalendar-root .Mui-selected": {
+                            backgroundColor: "rgb(213, 25, 0) !important",
+                            color: "white !important",
+
                           },
                         },
-                      ],
-                      sx: {
-                        height: "300px",
-                       
-                        "& .MuiYearCalendar-root .Mui-selected": {
-                          backgroundColor: "rgb(213, 25, 0) !important",
-                          color: "white !important",
- 
-                         
-                        },
-                        "& .MuiMonthCalendar-root .Mui-selected": {
-                          backgroundColor: "rgb(213, 25, 0) !important",
-                          color: "white !important",
-                       
-                        },
                       },
-                    },
-                  }}
-                />
-              </DemoContainer>
-            </LocalizationProvider>
-          </div>
- 
-          {/* Franchise dropdown with inline styles for alignment */}
-          <div style={{
-            display: "flex",
-            alignItems: "center",
-            marginBottom: "10px",
-            gap: "84px"
-          }}>
-            <label style={{
-              minWidth: "180px",
-              fontSize: "18px",
-              fontWeight: "500",
-              textAlign: "left"
-            }}>Franchise :</label>
-            <FormControl sx={{ ...selectFieldStyles}}>
-              <InputLabel id="franchise-label">Franchise</InputLabel>
-              <Select
-                labelId="franchise-label"
-                id="franchise-select"
-                value={selectedFranchise}
-                onChange={handleFranchiseChange}
-                input={<OutlinedInput label="Franchise" />}
-                MenuProps={MENU_PROPS}
-              >
-                {franchiseList.map((item) => (
-                  <MenuItem
-                    key={item.franchise}
-                    value={item.franchise}
-                    style={getMenuItemStyle(
-                      item.franchise,
-                      selectedFranchise,
-                      theme
-                    )}
-                  >
-                    {item.franchise}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </div>
- 
-          {/* Distributor dropdown with inline styles for alignment */}
-          <div style={{
-            display: "flex",
-            alignItems: "center",
-            marginBottom: "10px",
-            gap: "84px"
-          }}>
-            <label style={{
-              minWidth: "180px",
-              fontSize: "18px",
-              fontWeight: "500",
-              textAlign: "left"
-            }}>Distributor Name :</label>
-            <FormControl sx={{ ...selectFieldStyles }}>
-              <InputLabel id="distributor-label">Distributor</InputLabel>
-              <Select
-                labelId="distributor-label"
-                id="distributor-select"
-                value={distributor}
-                onChange={handleDistributorChange}
-                input={<OutlinedInput label="Distributor" />}
-                MenuProps={MENU_PROPS}
-              >
-                <MenuItem
-                  key="ALL"
-                  value="ALL"
-                  style={getMenuItemStyle("ALL", distributor, theme)}
+                    }}
+                  />
+                </DemoContainer>
+              </LocalizationProvider>
+            </div>
+
+            {/* Franchise dropdown with inline styles for alignment */}
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              marginBottom: "10px",
+              gap: "84px"
+            }}>
+              <label style={{
+                minWidth: "180px",
+                fontSize: "18px",
+                fontWeight: "500",
+                textAlign: "left"
+              }}>Franchise :</label>
+              <FormControl sx={{ ...selectFieldStyles }}>
+                <InputLabel id="franchise-label">Franchise</InputLabel>
+                <Select
+                  labelId="franchise-label"
+                  id="franchise-select"
+                  value={selectedFranchise}
+                  onChange={handleFranchiseChange}
+                  input={<OutlinedInput label="Franchise" />}
+                  MenuProps={MENU_PROPS}
                 >
-                  ALL
-                </MenuItem>
-              </Select>
-            </FormControl>
-          </div>
- 
-          {/* Organization Segment dropdown with inline styles for alignment */}
-          <div style={{
-            display: "flex",
-            alignItems: "center",
-            marginBottom: "30px",
-            gap: "84px"
-          }}>
-            <label style={{
-              minWidth: "180px",
-              fontSize: "18px",
-              fontWeight: "500",
-              textAlign: "left"
-            }}>Organization Segment :</label>
-            <FormControl sx={{ ...selectFieldStyles}}>
-              <InputLabel id="segment-label">Organization Segment</InputLabel>
-              <Select
-                labelId="segment-label"
-                id="segment-select"
-                value={selectedSegment}
-                onChange={handleSegmentChange}
-                input={<OutlinedInput label="Organization Segment" />}
-                MenuProps={MENU_PROPS}
-              >
-                {organizationSegments.map((segment) => (
+                  {franchiseList.map((item) => (
+                    <MenuItem
+                      key={item.franchise}
+                      value={item.franchise}
+                      style={getMenuItemStyle(
+                        item.franchise,
+                        selectedFranchise,
+                        theme
+                      )}
+                    >
+                      {item.franchise}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </div>
+
+            {/* Distributor dropdown with inline styles for alignment */}
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              marginBottom: "10px",
+              gap: "84px"
+            }}>
+              <label style={{
+                minWidth: "180px",
+                fontSize: "18px",
+                fontWeight: "500",
+                textAlign: "left"
+              }}>Distributor Name :</label>
+              <FormControl sx={{ ...selectFieldStyles }}>
+                <InputLabel id="distributor-label">Distributor</InputLabel>
+                <Select
+                  labelId="distributor-label"
+                  id="distributor-select"
+                  value={distributor}
+                  onChange={handleDistributorChange}
+                  input={<OutlinedInput label="Distributor" />}
+                  MenuProps={MENU_PROPS}
+                >
                   <MenuItem
-                    key={segment.id}
-                    value={segment.code}
-                    style={getMenuItemStyle(
-                      segment.code,
-                      selectedSegment,
-                      theme
-                    )}
+                    key="ALL"
+                    value="ALL"
+                    style={getMenuItemStyle("ALL", distributor, theme)}
                   >
-                   
-                    {segment.description}
+                    ALL
                   </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+                </Select>
+              </FormControl>
+            </div>
+
+            {/* Organization Segment dropdown with inline styles for alignment */}
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              marginBottom: "30px",
+              gap: "84px"
+            }}>
+              <label style={{
+                minWidth: "180px",
+                fontSize: "18px",
+                fontWeight: "500",
+                textAlign: "left"
+              }}>Organization Segment :</label>
+              <FormControl sx={{ ...selectFieldStyles }}>
+                <InputLabel id="segment-label">Organization Segment</InputLabel>
+                <Select
+                  labelId="segment-label"
+                  id="segment-select"
+                  value={selectedSegment}
+                  onChange={handleSegmentChange}
+                  input={<OutlinedInput label="Organization Segment" />}
+                  MenuProps={MENU_PROPS}
+                >
+                  {organizationSegments.map((segment) => (
+                    <MenuItem
+                      key={segment.id}
+                      value={segment.code}
+                      style={getMenuItemStyle(
+                        segment.code,
+                        selectedSegment,
+                        theme
+                      )}
+                    >
+
+                      {segment.description}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </div>
           </div>
-        </div>
- 
+
           <div className={styles.action}>
             <button onClick={handleSubmit}>View</button>
           </div>
@@ -468,6 +475,5 @@ const DumpReportPage: React.FC = () => {
     </ThemeProvider>
   );
 };
- 
+
 export default DumpReportPage;
- 

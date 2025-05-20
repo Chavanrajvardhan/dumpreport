@@ -272,11 +272,11 @@ function useData(rowLength: number, columnLength: number) {
         let payload = storedPayload ? JSON.parse(storedPayload) : {};
 
         // Replace null with 0
-        payload = Object.fromEntries(
-          Object.entries(payload).map(([key, value]) => [key, value === null ? 0 : value])
-        );
+        // payload = Object.fromEntries(
+        //   Object.entries(payload).map(([key, value]) => [key, value === null ? 0 : value])
+        // );
 
-        console.log("Payload", payload);
+        // console.log("Payload", payload);
 
         // Set payload info for UI
         setPayloadInfo({
