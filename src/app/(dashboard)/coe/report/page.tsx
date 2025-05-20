@@ -1,7 +1,17 @@
-import React from 'react'
+'use client'
+
+import React, { use, useContext, useEffect } from 'react'
 import styles from './page.module.css'
+import { LoadingContext } from '../../../(dashboard)/layout'; // Import the context from your layout
+
 
 const page = () => {
+      const { loading, setLoading } = useContext(LoadingContext);
+  
+      useEffect(() => {
+        setLoading(false); // Set loading to false when the component mounts
+       
+      }, [setLoading]);
   return (
     <>
       <div className={styles.container}>

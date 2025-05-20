@@ -482,8 +482,7 @@ export default function ColumnVirtualizationGrid() {
                     className="text-[#342d2d] font-large">
                     Total No. of Records <span
                       style={{ fontSize: '14px', fontWeight: '500' }}
-                      className="text-black font-large hover:bg-[#f5ebeb] rounded-2xl">[{totalCount}]</span>
-                    {isLoading && <span className="ml-2 text-gray-500">(Loading...)</span>}
+                      className="text-black font-large hover:bg-[#f5ebeb] rounded-2xl">[{ totalCount}]</span>
                   </p>
 
                   {/* Right Section */}
@@ -564,9 +563,8 @@ export default function ColumnVirtualizationGrid() {
                   columns={data.columns}
                   rows={isLoading ? [] : filteredRows}
                   loading={isLoading}
-                    //@ts-ignore
-                  components={{
-                    NoRowsOverlay: () => (
+                  slots={{
+                    noRowsOverlay: () => (
                       <div className="flex flex-col items-center justify-center h-full">
                         {isLoading ? (
                           <div className="flex flex-col items-center">

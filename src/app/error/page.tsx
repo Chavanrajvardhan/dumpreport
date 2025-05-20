@@ -7,8 +7,11 @@ import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
 export default function SessionExpired() {
   const router = useRouter();
  
-  const handleLogin = () => {
+  const handleLogin =async () => {
+    const { logoutAction } = await import('../../app/api/user/logout/route');
+    await logoutAction();
     router.push('/login');
+    // setIsLoading(false);
   };
  
   return (
@@ -29,7 +32,7 @@ export default function SessionExpired() {
       </Typography>
  
       <Typography variant="h5" fontWeight={600} color="textPrimary" mt={1}>
-        please click on the <strong >" Login "</strong>.
+        please click on the " Login ".
       </Typography>
  
       <Button
@@ -45,7 +48,7 @@ export default function SessionExpired() {
           px: 2,
          
           fontWeight: 'bold',
-          fontSize: '1rem',
+          fontSize: '0.9rem',
         }}
         onClick={handleLogin}
       >

@@ -12,42 +12,42 @@ export default function PerformanceComparisonDashboard() {
   const apiData = [
     {
       name: "Login and projects access",
-      reactInitial: 0.5,
-      reactSecondary: 0.48,
-      nextjsInitial: 1.5,
-      nextjsSecondary: 0.80,
-      diff1: 1.5 - 0.5,
-      diff2: 0.80 - 0.48
+      reactInitial: 0.70,
+      reactSecondary: 0.70,
+      nextjsInitial: 5.11,
+      nextjsSecondary: 0.79,
+      diff1: 0.70 - 5.11,
+      diff2: 0.70 - 0.79
     },
     {
       name: "All Project access to dashboard",
-      reactInitial: 2.0,
-      reactSecondary: 1.13,
-      nextjsInitial: 2.0,
+      reactInitial: 0.80,
+      reactSecondary: 0.70,
+      nextjsInitial: 5.64,
       nextjsSecondary: 1.32,
-      diff1: 0.0,
-      diff2: 0.19
+      diff1: 0.80 - 5.64,
+      diff2: 0.70 - 1.32
     },
     {
       name: "getorgsegment/getallfranchisenone",
-      reactInitial: 0.41,
-      reactSecondary: 0.41,
-      nextjsInitial: 5.38,
-      nextjsSecondary: 0.86,
-      diff1: 4.97,
-      diff2: 0.45
+      reactInitial: 0.50,
+      reactSecondary: 0.50,
+      nextjsInitial: 5.13,
+      nextjsSecondary: 0.8,
+      diff1: 0.50 - 5.13,
+      diff2: 0.50 - 0.8
     },
     {
-      name: "getterritorydumpreportdara",
-      reactInitial: 32.15,
-      reactSecondary: 32.15,
-      nextjsInitial: 72.0,
-      nextjsSecondary: 25.96,
-      diff1: 39.85,
-      diff2: -6.19
+      name: "getterritorydumpreportdata",
+      reactInitial: 28.75,
+      reactSecondary: 28.75,
+      nextjsInitial: 40,
+      nextjsSecondary: 30,
+      diff1: 28.75 - 40,
+      diff2: 28.75 - 30,
     }
   ];
-
+  // @ts-ignore
   const formatCell = (reactValue, nextjsValue) => {
     const diff = nextjsValue - reactValue;
     const color = diff > 0 ? '#7f1d1d33' : diff < 0 ? '#14532d33' : '#1f293733';
@@ -123,8 +123,8 @@ export default function PerformanceComparisonDashboard() {
                       <Legend wrapperStyle={{paddingTop: 20}} />
                       <Bar dataKey="React Initial" fill="#6366f1" />
                       <Bar dataKey="Next.js Initial" fill="#34d399" />
-                      <Bar dataKey="React Secondary" fill="#f59e0b" />
-                      <Bar dataKey="Next.js Secondary" fill="#3b82f6" />
+                      <Bar dataKey="React Secondary" fill="#6366f1" />
+                      <Bar dataKey="Next.js Secondary" fill="#34d399" />
                     </BarChart>
                   ) : (
                     <LineChart data={smallValueData}>
@@ -162,8 +162,8 @@ export default function PerformanceComparisonDashboard() {
                         <Legend wrapperStyle={{paddingTop: 20}} />
                         <Bar dataKey="React Initial" fill="#6366f1" />
                         <Bar dataKey="Next.js Initial" fill="#34d399" />
-                        <Bar dataKey="React Secondary" fill="#f59e0b" />
-                        <Bar dataKey="Next.js Secondary" fill="#3b82f6" />
+                        <Bar dataKey="React Secondary" fill="#6366f1" />
+                        <Bar dataKey="Next.js Secondary" fill="#34d399" />
                       </BarChart>
                     ) : (
                       <LineChart data={largeValueData}>
@@ -231,7 +231,7 @@ export default function PerformanceComparisonDashboard() {
           </div>
         )}
 
-        <div className="mt-10 bg-gray-800 p-6 rounded-lg shadow-lg">
+        {/* <div className="mt-10 bg-gray-800 p-6 rounded-lg shadow-lg">
           <h3 className="text-xl font-semibold mb-4">Key Performance Insights:</h3>
           <ul className="list-disc list-inside text-gray-300 space-y-2 pl-4">
             <li>React shows faster initial load times in 3 out of 4 API operations</li>
@@ -239,7 +239,7 @@ export default function PerformanceComparisonDashboard() {
             <li>For secondary loads, Next.js performs better in 1 case and worse in 3 cases</li>
             <li>Next.js secondary load for territory dump is notably faster than React (25.96s vs 32.15s)</li>
           </ul>
-        </div>
+        </div> */}
 
         <div className="mt-8 p-4 text-sm text-gray-400 bg-gray-800 rounded-lg shadow-lg">
           <p className="font-medium mb-2">Color legend in table view:</p>

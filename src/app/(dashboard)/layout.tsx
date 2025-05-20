@@ -19,13 +19,10 @@ import ListItemText from '@mui/material/ListItemText';
 import { Collapse } from '@mui/material';
 import styles from './page.module.css';  // Import the CSS module
 import Image from 'next/image';
-import DumpReportPage from '../../components/dumpform/Dumpform';
-import { truncate } from 'fs/promises';
 import sidebarLogo from "../../../public/jnj_logo_white.png";
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 import LogoutProp from '../../components/Logout/LogoutProp';
 import { ExpandLess, ExpandMore } from '@mui/icons-material';
-import Typography from '@mui/material/Typography';
 
 //Import For Icons
 import FolderZipIcon from '@mui/icons-material/FolderZip';
@@ -33,17 +30,17 @@ import ContactPhoneOutlinedIcon from '@mui/icons-material/ContactPhoneOutlined';
 import DataThresholdingOutlinedIcon from '@mui/icons-material/DataThresholdingOutlined';
 import InsertChartOutlinedIcon from '@mui/icons-material/InsertChartOutlined';
 import Upload from "../../../public/cloud-computing.png";
-import Reload from "../../../public/reload.png";
-import link from "../../../public/link.png";
+import Reload from "../../../public/Reload.svg";
+import link from "../../../public/link.svg";
 import Reupload from "../../../public/reupload.png";
 import { usePathname } from 'next/navigation';
-import LoadingScreen from '../../components/LoadingScreen/LoadingScreen';
-
+import contactImg from '../../../public/contactPhone.svg';
 
 //Import for Account
 import { Account } from '@toolpad/core/Account';
 import { AppProvider } from '@toolpad/core/AppProvider';
 import { UserOrg, CustomSession } from './UserOrg';
+import LoadingScreen from '@/components/LoadingScreen/LoadingScreen';
 
 
 export const LoadingContext = createContext({
@@ -61,52 +58,64 @@ type MenuItem = {
     text: string;
     icon: React.ReactElement;
     subItems?: string[];
+    route?: string; // Added route property for main menu items
 };
 
 const menuItems: MenuItem[] = [
     {
         text: 'Data Upload Status',
         icon: <Image src={Upload} alt="Upload icon"
-            width={24}
-            height={24}
+            width={23}
+            height={23}
             style={{ display: 'inline-block' }} />,
+        route: 'datauploadstatus'
     },
     {
         text: 'Reload Zylem Data',
         icon: <Image src={Reload} alt="Reload icon"
-            width={24}
-            height={24}
-            style={{ display: 'inline-block' }} />,
+            width={20}
+            height={20}
+            style={{ display: 'inline-block' ,transform:"rotate(30deg)"}} />,
+        route: 'reloadzylemdata'
     },
     {
         text: 'Data Mapping',
         icon: <Image src={link} alt="Data Mapping icon"
-            width={24}
-            height={20}
-            style={{ display: 'inline-block' }} />,
+            width={20}
+            height={18}
+            style={{ display: 'inline-block' ,}} />,
+        route: 'datamapping'
     },
     {
         text: 'Enable Reupload',
         icon: <Image src={Reupload} alt="Reupload icon"
-            width={24}
-            height={24}
+            width={20}
+            height={20}
             style={{ display: 'inline-block' }} />,
+        route: 'enablereupload'
     },
     {
         text: 'Configuration',
         icon: <FolderZipIcon />,
+        route: 'configuration'
     },
     {
         text: 'System Configuration',
         icon: <FolderZipIcon />,
+        route: 'systemconfiguration'
     },
     {
         text: 'Help And Communication',
-        icon: <ContactPhoneOutlinedIcon />,
+        icon: <Image src={contactImg} alt="contact icon"
+            width={35}
+            height={35}
+            style={{ display: 'inline-block',marginLeft:"-2px" }} />,
+        route: 'helpandcommunication'
     },
     {
         text: 'Masters',
         icon: <FolderZipIcon />,
+        route: 'coe/masters', // Main route for Masters
         subItems: ['Distributor', 'Products', 'ECP Products', 'Standard Price', 'Account',
             'Area Tree', 'Surgeons', 'Employee', 'Territory', 'Employee Territory',
             'Territory Management', 'Branch Secretary Region', 'Distributor Terrotory',
@@ -117,6 +126,7 @@ const menuItems: MenuItem[] = [
     {
         text: 'Allied Masters',
         icon: <FolderZipIcon />,
+        route: 'coe/alliedmasters', // Main route for Allied Masters
         subItems: ['Distributor Group', 'UOM', 'Franchise', 'Sub Franchise', 'Product Group',
             'Product Category', 'Product Brand', 'Product Line', 'Account Group', 'Account Type',
             'Account Classification', 'Account Segmentation', 'Surgeon Contact Type',
@@ -127,11 +137,13 @@ const menuItems: MenuItem[] = [
     {
         text: 'Data',
         icon: <DataThresholdingOutlinedIcon />,
+        route: 'coe/data', // Main route for Data
         subItems: ['Inventory',],
     },
     {
         text: 'Report',
         icon: <InsertChartOutlinedIcon />,
+        route: 'coe/report', // Main route for Report
         subItems: ['Dealer Data Status Report', 'Dealer Roprted Sales', 'Dealer Repoted SNS',
             'Dealer Price Report', 'Dump Report', 'Dealer Purchase Report', 'Activity Log',
             'Inventory Report', 'Standard Price Report', 'Request Report',
@@ -177,7 +189,9 @@ export default function layout({ children }: { children: React.ReactNode }) {
 
     const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
 
+    // Modified handleClick to only toggle submenu state and not interfere with navigation
     const handleClick = (text: string) => {
+        // Toggle submenu open/close state only
         setOpenSubmenu(prev => (prev === text ? null : text));
     };
 
@@ -208,6 +222,17 @@ export default function layout({ children }: { children: React.ReactNode }) {
     const handleMainMenu = (text: string) => {
         console.log("Menu item clicked:", text);
 
+        // Check if it's a main menu item
+        const mainMenuItem = menuItems.find(item => item.text === text);
+        if (mainMenuItem?.route) {
+            // Clear the selected sub-item when navigating to a main menu route
+            setSelectedSubItem('');
+            setLoading(true);
+            router.push(`/${mainMenuItem.route}`);
+            return;
+        }
+
+        // Handle submenu item clicks
         const routeMap: { [key: string]: string } = {
             'Dump Report': 'coe/report/dumpreport'
             // Add more mappings as needed
@@ -218,39 +243,46 @@ export default function layout({ children }: { children: React.ReactNode }) {
         // Store the normalized selected sub-item
         setSelectedSubItem(normalize(text));
         setLoading(true);
-
         router.push(`/${route}`);
     };
-
-    // This useEffect initializes submenu state based on the URL when component loads
-    useEffect(() => {
-        // Find the menu item that contains the current path in its subItems
-        const menuWithCurrentPath = menuItems.find(item =>
-            item.subItems?.some(subItem => normalize(subItem) === pathLastSegment)
-        );
-
-        if (menuWithCurrentPath) {
-            setOpenSubmenu(menuWithCurrentPath.text);
-
-            // Find which sub-item matches the current path
-            const matchingSubItem = menuWithCurrentPath.subItems?.find(
-                subItem => normalize(subItem) === pathLastSegment
-            );
-
-            if (matchingSubItem) {
-                setSelectedSubItem(normalize(matchingSubItem));
-            }
-        }
-
-        console.log("Path last segment:", pathLastSegment);
-        console.log("Selected sub item:", selectedSubItem);
-    }, [pathname, pathLastSegment]);
-
 
     const loadingContextValue = {
         loading,
         setLoading
     };
+
+    // This useEffect initializes submenu state based on the URL when component loads
+    useEffect(() => {
+        // Only initialize submenu state on initial page load
+        if (openSubmenu !== null) return; // Don't override user toggle
+     
+        const menuWithCurrentPath = menuItems.find(item => 
+            item.subItems?.some(subItem => normalize(subItem) === pathLastSegment)
+        );
+     
+        if (menuWithCurrentPath) {
+            setOpenSubmenu(menuWithCurrentPath.text);
+     
+            const matchingSubItem = menuWithCurrentPath.subItems?.find(
+                subItem => normalize(subItem) === pathLastSegment
+            );
+     
+            if (matchingSubItem) {
+                setSelectedSubItem(normalize(matchingSubItem));
+            }
+        }
+    }, [pathLastSegment]); // Only rerun if pathLastSegment changes
+
+    // Check if the current path is related to the Report section
+    const isReportActive = () => {
+        // Check if the path contains 'report' or any Report subitem is selected
+        const reportItem = menuItems.find(item => item.text === 'Report');
+        if (!reportItem || !reportItem.subItems) return false;
+
+        return reportItem.subItems.some(subItem => normalize(subItem) === selectedSubItem) ||
+            pathname.toLowerCase().includes('report');
+    };
+
 
     return (
         <LoadingContext.Provider value={loadingContextValue}>
@@ -282,7 +314,16 @@ export default function layout({ children }: { children: React.ReactNode }) {
                                 height={35}
                             />
                         </Box>
-                        <div style={{ marginRight: '30px' }} >
+                        
+                        <div style={{ display:"flex", flexDirection: 'row', marginRight: '30px' }} >
+                             <Image
+                                src={"/contact.svg"}
+                                alt="Contact icon"
+                                width={33}
+                                height={33}
+                                style={{
+                                    marginRight: '10px',
+                                }}/>
                             <LogoutProp />
                         </div>
                     </Toolbar>
@@ -346,6 +387,7 @@ export default function layout({ children }: { children: React.ReactNode }) {
                             marginTop: '8px',
                             marginLeft: '32px',
                             marginRight: '32px',
+                            marginBottom: '18px',
                         }}>
                             <UserOrg />
                         </div>
@@ -357,17 +399,61 @@ export default function layout({ children }: { children: React.ReactNode }) {
                                 const itemPath = normalize(item.text);
                                 const isSubItemActive = item.subItems?.some(sub => pathLastSegment === normalize(sub));
                                 const isActive = pathname.includes(itemPath) || isSubItemActive;
+                                const isReportSection = item.text === 'Report' && isReportActive();
 
                                 return (
                                     <React.Fragment key={item.text}>
                                         <ListItem disablePadding>
-                                            <ListItemButton
-                                                onClick={() => item.subItems ? handleClick(item.text) : handleMainMenu(item.text)}
-                                                className={`${styles.listBtn} ${isActive ? styles.selected : ''}`}
+                                                                                            <ListItemButton
+                                                onClick={() => {
+                                                    if (item.subItems) {
+                                                        // Check if we're currently on a submenu route
+                                                        const isOnSubmenuRoute = item.subItems.some(subItem => 
+                                                            pathname.includes(normalize(subItem)));
+                                                        
+                                                        if (isOnSubmenuRoute && item.route) {
+                                                            // If we're on a submenu page, go to main menu and close submenu
+                                                            setOpenSubmenu(null);
+                                                            setSelectedSubItem(''); // Clear selected sub-item
+                                                            setLoading(true);
+                                                            router.push(`/${item.route}`);
+                                                        } else if (openSubmenu === item.text) {
+                                                            // If submenu is open but we're not on a submenu page, just close it
+                                                            setOpenSubmenu(null);
+                                                            setSelectedSubItem(''); // Clear selected sub-item
+                                                        } else {
+                                                            // Open the submenu
+                                                            setOpenSubmenu(item.text);
+                                                        }
+                                                    } else {
+                                                        // For main menu items without submenus
+                                                        // Clear any selected submenu state and close any open submenus
+                                                        setOpenSubmenu(null);
+                                                        setSelectedSubItem('');
+                                                        handleMainMenu(item.text);
+                                                    }
+                                                }}
+                                                className={`${styles.listBtn} ${isActive || isReportSection ? styles.selected : ''}`}
                                             >
-                                                <ListItemIcon>{item.icon}</ListItemIcon>
-                                                <ListItemText primary={item.text} />
-                                                {item.subItems ? (openSubmenu === item.text || isSubItemActive ? <ExpandLess /> : <ExpandMore />) : null}
+                                                <ListItemIcon
+                                                    className={isActive || isReportSection ? styles.activeIcon : ''}
+                                                >
+                                                    {React.isValidElement(item.icon) && item.icon.type === Image ? (
+                                                        <div className={isActive || isReportSection ? styles.activeImageIcon : ''}>
+                                                            {item.icon}
+                                                        </div>
+                                                    ) : (
+                                                        React.cloneElement(item.icon, {
+                                                            style: {
+                                                                color: (isActive || isReportSection) ? 'rgb(215 36 12)' : 'inherit'
+                                                            }
+                                                        })
+                                                    )}
+                                                </ListItemIcon>
+                                                <ListItemText primary={item.text}
+                                                disableTypography
+                                                />
+                                                {item.subItems ? (openSubmenu === item.text || isSubItemActive ? <ExpandLess sx={{   transform: 'rotate(180deg)',fontSize:'20px'}}  /> : <ExpandMore sx={{   transform: 'rotate(-90deg)',fontSize:'20px'}} />) : null}
                                             </ListItemButton>
                                         </ListItem>
                                         {item.subItems && (
@@ -382,11 +468,14 @@ export default function layout({ children }: { children: React.ReactNode }) {
                                                                 key={subItem}
                                                                 sx={{ pl: 4 }}
                                                                 onClick={() => handleMainMenu(subItem)}
-                                                                className={`${styles.subItems}`}
+                                                                // className={`${styles.subItems}`}
+                                                                
                                                             >
                                                                 <ListItemText
                                                                     primary={subItem}
-                                                                    className={`${isSubItemSelected ? styles.subItemSelected : ''}`}
+                                                                    className={`${styles.subItems} ${isSubItemSelected ? styles.subItemSelected : ''}`}
+                                                                   
+                                                                    disableTypography
                                                                 />
                                                             </ListItemButton>
                                                         );
@@ -403,6 +492,7 @@ export default function layout({ children }: { children: React.ReactNode }) {
 
                 <main className={`${styles.mainContent} ${open ? styles.open : ''}`}>
                     <div className={styles.drawerHeader2} />
+                    {loading && <LoadingScreen />}
                     {children}
                 </main>
             </Box>

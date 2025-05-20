@@ -116,7 +116,8 @@
  
   .styledSidebarImage {
     width: 165px;
-    height: 60px;
+    height: 45px;
+    margin: 10px;
     justify-content: center;
     position: center;
  
@@ -131,24 +132,29 @@
    
        
   }
- 
+   
   .subItems{
       font-size: 12px !important;
       color: #6E6767;
-      padding: 8px 12px 8px 16px;
-      margin-bottom: 4px;
+      padding: 0px 12px 0px 1px;
+      margin-bottom: 0px;
       position: relative;
-      left: 5%;
+      left: 11%;
     }
  
     .subItems::before {
       content: "•";
       color: #6E6767;
       position: absolute;
-      left: 1%;
-      transform: translateY(-250%);
+      left: -15%;
       width: 4px;
       height: 4px;
+    }
+ 
+    .subItems.subItemSelected::before {
+      content: "●";
+      color: #d61900;
+     
     }
  
     .menu{
@@ -196,12 +202,13 @@
       color: rgb(215 36 12);
        padding-left: 15px;
        border-radius: 8px;
+  
     }
  
  
  
-.subItemSelected {
- color: #a14a4a; /* Subitem highlight */
- 
-  font-weight: 500;
+.subItems.subItemSelected {
+ color: #000000; /* Subitem highlight */
+  font-weight: 600;
 }
+ 

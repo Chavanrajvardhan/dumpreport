@@ -112,7 +112,7 @@ useEffect(() => {
       {loading && <LoadingScreen />}
        <div className={stylecss.background}>
       <div className={stylecss.header}>
-        <Image src={"/image.png"} alt={"jaj image"} width={145} height={40} className={stylecss.image} />
+        <Image src={"/image.png"} alt={"jaj image"} width={143} height={37} className={stylecss.image} />
         <LogoutProp />
       </div>
       <div className={stylecss.main}>
