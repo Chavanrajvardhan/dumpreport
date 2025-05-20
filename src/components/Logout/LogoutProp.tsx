@@ -1,45 +1,58 @@
-'use client'
+'use client';
 
-import React from 'react'
-import Image from 'next/image'
-import { logoutAction } from '../../app/api/user/logout/route'; // adjust path as needed
+import React, { useState } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Box } from '@mui/material';
+import LogoutModal from '../LogoutPage/LogoutPage'; // renamed for clarity
 
 const LogoutProp = () => {
-  const route = useRouter();
-  const handleLogout = async () => {
+  const router = useRouter();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleLogoutClick = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleConfirmLogout = async () => {
+    setIsModalOpen(false);
+    const { logoutAction } = await import('../../app/api/user/logout/route');
     await logoutAction();
-    route.push("/login"); // Redirect to login page after logout
-  }
+    router.push('/login');
+  };
+
   return (
     <>
+      <Box
+        onClick={handleLogoutClick}
+        sx={{
+          width: 40,
+          height: 40,
+          borderRadius: '50%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          transition: 'all 0.3s ease',
+          '&:hover': {
+            backgroundColor: '#ebebeb',
+            '& img': {
+              filter:
+                'brightness(0) saturate(100%) invert(18%) sepia(95%) saturate(7476%) hue-rotate(358deg) brightness(98%) contrast(114%)',
+            },
+          },
+        }}
+      >
+        <Image src="/logout.svg" alt="logout" width={18} height={18} />
+      </Box>
 
-
-<Box
-  onClick={handleLogout}
-  sx={{
-    width: 40,
-    height: 40,
-    borderRadius: '50%',
-    // backgroundColor: '#fff', // light circle
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    '&:hover': {
-      backgroundColor: '#ebebeb',          // slightly brighter
-      '& img': {
-        filter: 'brightness(0) saturate(100%) invert(18%) sepia(95%) saturate(7476%) hue-rotate(358deg) brightness(98%) contrast(114%)' // red tone
-      }
-    }
-  }}
->
-  <Image src="/logout.svg" alt="logout image" width={18} height={18} />
-</Box>
+      <LogoutModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={handleConfirmLogout}
+      />
     </>
-  )
-}
+  );
+};
 
-export default LogoutProp
+export default LogoutProp;

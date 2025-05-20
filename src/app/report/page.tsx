@@ -12,6 +12,7 @@ import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import Popover from '@mui/material/Popover';
 import CircularProgress from '@mui/material/CircularProgress';
 import * as XLSX from 'xlsx';
+import { useRouter } from 'next/navigation';
 
 export interface DataRowModel {
   id: GridRowId;
@@ -19,7 +20,7 @@ export interface DataRowModel {
 }
 
 export interface GridData {
-  columns: GridColDef[];a
+  columns: GridColDef[];
   rows: DataRowModel[];
 }
 
@@ -74,8 +75,6 @@ const formatMonthYear = (dateString: string): string => {
     return dateString; // Return original on error
   }
 };
-
-
 
 // Custom header mappings (add more as needed)
 const customHeaderMappings: Record<string, string> = {
@@ -174,6 +173,7 @@ const dateColumnFields = [
 ];
 
 // Default columns that will show immediately on render
+  //@ts-ignore
 const defaultColumns: GridColDef[] = [
   { field: 'franchise', headerName: customHeaderMappings['franchise'] || 'Franchise', width: 150, align: 'center', headerAlign: 'center' },
   { field: 'subFranchise', headerName: customHeaderMappings['subFranchise'] || 'Sub Franchise', width: 150, align: 'center', headerAlign: 'center' },
@@ -251,6 +251,7 @@ const defaultColumns: GridColDef[] = [
   if (dateColumnFields.includes(column.field)) {
     return {
       ...column,
+        //@ts-ignore
       valueFormatter: (params) => formatToCustomDate(params.value)
     };
   }
@@ -258,10 +259,12 @@ const defaultColumns: GridColDef[] = [
 });;
 
 function useData(rowLength: number, columnLength: number) {
+    //@ts-ignore
   const [data, setData] = React.useState<GridData>({ columns: defaultColumns, rows: [] });
   const [payloadInfo, setPayloadInfo] = React.useState<{ franchise?: string, MonthDate?: string }>({});
   const [totalCount, setTotalCount] = React.useState(0);
   const [isLoading, setIsLoading] = React.useState(true);
+  const router = useRouter();
 
   React.useEffect(() => {
     async function fetchData() {
@@ -304,7 +307,6 @@ function useData(rowLength: number, columnLength: number) {
           );
 
           // Build rows using actual data fields
-          // Build rows using actual data fields
           const rows = rawData.map((row, index) => {
             const formattedRow: any = { id: index };
             for (const key of displayKeys) {
@@ -318,18 +320,19 @@ function useData(rowLength: number, columnLength: number) {
             }
             return formattedRow;
           });
-
+            //@ts-ignore
           setData({ columns: filteredColumns, rows });
           setTotalCount(rawData.length);
         } else {
           console.warn('Empty or invalid data from API');
-          // Keep default columns but clear rows
+            //@ts-ignore
           setData(prevData => ({ columns: prevData.columns, rows: [] }));
           setTotalCount(0);
         }
       } catch (error) {
         console.error('Failed to load data:', error);
-        // Keep default columns but clear rows on error
+        router.push('/error'); 
+          //@ts-ignore
         setData(prevData => ({ columns: prevData.columns, rows: [] }));
       } finally {
         setIsLoading(false);
@@ -342,11 +345,10 @@ function useData(rowLength: number, columnLength: number) {
   return { data, payloadInfo, totalCount, isLoading };
 }
 
+
 export default function ColumnVirtualizationGrid() {
-  const { data, payloadInfo, totalCount, isLoading } = useData(100, 1000);
-  // For popover
+  const { data, payloadInfo, totalCount, isLoading } = useData(100, 1000)
   const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null);
-  // For search functionality
   const [searchText, setSearchText] = React.useState('');
 
   // Format for franchise and month display
@@ -368,12 +370,9 @@ export default function ColumnVirtualizationGrid() {
   const open = Boolean(anchorEl);
   const id = open ? 'export-popover' : undefined;
 
-  // Function to export data to Excel
   const exportToExcel = () => {
-    // Close popover
     handleClose();
 
-    // If no data, don't proceed
     if (!data.rows || data.rows.length === 0) {
       console.warn("No data to export");
       return;
@@ -386,8 +385,10 @@ export default function ColumnVirtualizationGrid() {
         data.columns.forEach(col => {
           const value = row[col.field];
           if (col.field === 'dataMonth') {
+              //@ts-ignore
             rowData[col.field] = formatMonthYear(value);
           } else if (col.field.toLowerCase().includes('date')) {
+              //@ts-ignore
             rowData[col.field] = formatToCustomDate(value);
           } else {
             rowData[col.field] = typeof value === 'string' ? capitalizeFirstLetter(value) : value;
@@ -396,18 +397,14 @@ export default function ColumnVirtualizationGrid() {
         return rowData;
       });
 
-      // Create worksheet
       const ws = XLSX.utils.json_to_sheet(exportData);
 
-      // Create workbook
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Data");
 
-      // Generate file name
       const fileName = `DumpReport_${payloadInfo.franchise || 'All'}_${payloadInfo.MonthDate ? formatDate(payloadInfo.MonthDate) : new Date().toLocaleDateString()
         }.xlsx`;
 
-      // Write and download
       XLSX.writeFile(wb, fileName);
 
       console.log("Excel export successful");
@@ -466,40 +463,42 @@ export default function ColumnVirtualizationGrid() {
 
       <div style={{ backgroundColor: '#fff9f9' }}>
         <div style={{ marginLeft: '40px', marginRight: '40px', borderColor: '#fceeee' }} >
-          <h2 style={{ marginTop: '11px', marginBottom: '15px', fontSize: '25px', fontWeight: '800', color: 'rgb(52, 45, 45)' }} className={classess.font}>
-            Dump Report
-            <span className='text-[18px] font-medium'>
+          <h2 style={{ marginTop: '11px', marginBottom: '15px', fontSize: '26px', fontWeight: '800', color: 'rgb(52, 45, 45)' }} className={classess.font}>
+            Dump Report 
+            <span className='text-[18px] font-medium '>
               {payloadInfo.franchise && payloadInfo.MonthDate && ` : ${payloadInfo.franchise}, ${formatDate(payloadInfo.MonthDate)}`}
             </span>
           </h2>
 
           {/* grid box  */}
-          <div style={{ height: '390px',padding:0 }} className='border border-[#fceeee] rounded-xl bg-white shadow-sm'>
+          <div style={{ height: '390px' }} className='border border-[#fceeee] rounded-xl bg-white shadow-sm'>
             <div style={{ marginLeft: '25px', marginRight: '25px' }} className="flex items-center justify-center h-[85%]">
               <div style={{ height: 300, width: '100%' }}>
 
                 {/* top section  */}
-                <div style={{ marginBottom: '10px' }} className="flex items-center justify-between rounded-lg">
+                <div style={{ marginBottom: '10px', paddingTop : '7px' }} className="flex items-center justify-between rounded-lg">
                   {/* Left Section */}
-                  <p style={{ fontSize: '13px', fontWeight: '600' }} className="text-[#342d2d] font-large">
+                  <p style={{ fontSize: '14px', fontWeight: '600' }}
+                    className="text-[#342d2d] font-large">
                     Total No. of Records <span
-                      style={{ fontSize: '14px', fontWeight: '600' }}
-                      className="text-black font-large hover:bg-[#f5ebeb] rounded-2xl"
-                    >[{totalCount}]</span>
-                    {isLoading && <span className="ml-2 text-gray-500"></span>}
+                      style={{ fontSize: '14px', fontWeight: '500' }}
+                      className="text-black font-large hover:bg-[#f5ebeb] rounded-2xl">[{totalCount}]</span>
+                    {isLoading && <span className="ml-2 text-gray-500">(Loading...)</span>}
                   </p>
 
                   {/* Right Section */}
                   <div className="flex items-center space-x-4">
                     {/* Search Input */}
-                    <div className="relative w-[260px]">
+                    <div className="relative w-[300px]" >
                       <input
-                        style={{ margin: '2px', paddingLeft: '28px' }}
+                        style={{ margin: '2px', paddingLeft: '28px', backgroundColor : 'transparent' , }} 
+                      
                         type="text"
                         placeholder="Search"
+      
                         value={searchText}
                         onChange={handleSearchChange}
-                        className="w-full pl-10 pr-4 h-10 border border-[#fceeee] rounded-md bg-[#fff9f9] outline-none focus:border-black"
+                        className="w-full pl-10 pr-4 h-10 border border-[#dad7d7] rounded-md hover:border-[#000] outline-none focus:border-black"
                       />
                       <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
                         <SearchOutlinedIcon fontSize="small" />
@@ -565,6 +564,7 @@ export default function ColumnVirtualizationGrid() {
                   columns={data.columns}
                   rows={isLoading ? [] : filteredRows}
                   loading={isLoading}
+                    //@ts-ignore
                   components={{
                     NoRowsOverlay: () => (
                       <div className="flex flex-col items-center justify-center h-full">
@@ -655,11 +655,7 @@ export default function ColumnVirtualizationGrid() {
                     },
                     '& .MuiDataGrid-footerContainer': {
                       borderTop: 'none !important',
-                      marginBottom: 0,
-                      marginTop: 0,
-                      padding: 0,
-                      position: 'sticky',
-                      bottom: 0
+                      margin: 0,
                     },
                     '& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within': {
                       outline: 'none',
@@ -711,7 +707,6 @@ export default function ColumnVirtualizationGrid() {
                     '& .MuiDivider-root': {
                       display: 'none !important',
                     }
-                    
                   }}
                   // disableColumnMenu
                   // disableColumnFilter

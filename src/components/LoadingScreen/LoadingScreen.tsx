@@ -2,6 +2,7 @@
  
 import { Box, CircularProgress, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
+import "./spinner.css"
  
 // Fullscreen semi-transparent black background
 const Overlay = styled(Box)(() => ({
@@ -16,13 +17,13 @@ const Overlay = styled(Box)(() => ({
   justifyContent: 'center',
   zIndex: 9999,
 }));
- 
+
 // Centered white box
 const WhiteBox = styled(Box)(() => ({
-  width: 300,
-  height: 200,
+  width: 320,
+  height: 225,
   backgroundColor: '#fff',
-  borderRadius: 8,
+  borderRadius: 12,
   boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
   display: 'flex',
   flexDirection: 'column',
@@ -30,15 +31,20 @@ const WhiteBox = styled(Box)(() => ({
   justifyContent: 'center',
   padding: 20,
 }));
- 
+
 export default function LoadingScreen() {
   return (
     <Overlay>
       <WhiteBox>
-        <CircularProgress />
+        <div className="lds-spinner">
+          <div></div><div></div><div></div><div></div><div></div><div></div>
+          <div></div><div></div><div></div><div></div><div></div><div></div>
+        </div>
+        <div style={{color:"#1c4c5b", fontSize:"14px",marginTop:"10px"}}>
+
+          Please wait...
+        </div>
       </WhiteBox>
     </Overlay>
   );
 }
- 
- 
