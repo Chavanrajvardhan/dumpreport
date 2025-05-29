@@ -75,7 +75,7 @@ const menuItems: MenuItem[] = [
         icon: <Image src={Reload} alt="Reload icon"
             width={20}
             height={20}
-            style={{ display: 'inline-block' ,transform:"rotate(30deg)"}} />,
+            style={{ display: 'inline-block', transform: "rotate(30deg)" }} />,
         route: 'reloadzylemdata'
     },
     {
@@ -83,7 +83,7 @@ const menuItems: MenuItem[] = [
         icon: <Image src={link} alt="Data Mapping icon"
             width={20}
             height={18}
-            style={{ display: 'inline-block' ,}} />,
+            style={{ display: 'inline-block', }} />,
         route: 'datamapping'
     },
     {
@@ -109,7 +109,7 @@ const menuItems: MenuItem[] = [
         icon: <Image src={contactImg} alt="contact icon"
             width={35}
             height={35}
-            style={{ display: 'inline-block',marginLeft:"-2px" }} />,
+            style={{ display: 'inline-block', marginLeft: "-2px" }} />,
         route: 'helpandcommunication'
     },
     {
@@ -255,18 +255,18 @@ export default function layout({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         // Only initialize submenu state on initial page load
         if (openSubmenu !== null) return; // Don't override user toggle
-     
-        const menuWithCurrentPath = menuItems.find(item => 
+
+        const menuWithCurrentPath = menuItems.find(item =>
             item.subItems?.some(subItem => normalize(subItem) === pathLastSegment)
         );
-     
+
         if (menuWithCurrentPath) {
             setOpenSubmenu(menuWithCurrentPath.text);
-     
+
             const matchingSubItem = menuWithCurrentPath.subItems?.find(
                 subItem => normalize(subItem) === pathLastSegment
             );
-     
+
             if (matchingSubItem) {
                 setSelectedSubItem(normalize(matchingSubItem));
             }
@@ -314,16 +314,16 @@ export default function layout({ children }: { children: React.ReactNode }) {
                                 height={35}
                             />
                         </Box>
-                        
-                        <div style={{ display:"flex", flexDirection: 'row', marginRight: '30px' }} >
-                             <Image
+
+                        <div style={{ display: "flex", flexDirection: 'row', marginRight: '30px' }} >
+                            <Image
                                 src={"/contact.svg"}
                                 alt="Contact icon"
                                 width={33}
                                 height={33}
                                 style={{
                                     marginRight: '10px',
-                                }}/>
+                                }} />
                             <LogoutProp />
                         </div>
                     </Toolbar>
@@ -403,14 +403,20 @@ export default function layout({ children }: { children: React.ReactNode }) {
 
                                 return (
                                     <React.Fragment key={item.text}>
-                                        <ListItem disablePadding>
-                                                                                            <ListItemButton
+                                        <ListItem disablePadding >
+                                            <ListItemButton
+                                                sx={{
+                                                    '&:hover': {
+                                                        backgroundColor: '#F6F5F5',
+                                                        borderRadius: '10px',
+                                                    },
+                                                }}
                                                 onClick={() => {
                                                     if (item.subItems) {
                                                         // Check if we're currently on a submenu route
-                                                        const isOnSubmenuRoute = item.subItems.some(subItem => 
+                                                        const isOnSubmenuRoute = item.subItems.some(subItem =>
                                                             pathname.includes(normalize(subItem)));
-                                                        
+
                                                         if (isOnSubmenuRoute && item.route) {
                                                             // If we're on a submenu page, go to main menu and close submenu
                                                             setOpenSubmenu(null);
@@ -451,9 +457,10 @@ export default function layout({ children }: { children: React.ReactNode }) {
                                                     )}
                                                 </ListItemIcon>
                                                 <ListItemText primary={item.text}
-                                                disableTypography
+
+                                                    disableTypography
                                                 />
-                                                {item.subItems ? (openSubmenu === item.text || isSubItemActive ? <ExpandLess sx={{   transform: 'rotate(180deg)',fontSize:'20px'}}  /> : <ExpandMore sx={{   transform: 'rotate(-90deg)',fontSize:'20px'}} />) : null}
+                                                {item.subItems ? (openSubmenu === item.text || isSubItemActive ? <ExpandLess sx={{ transform: 'rotate(180deg)', fontSize: '20px' }} /> : <ExpandMore sx={{ transform: 'rotate(-90deg)', fontSize: '20px' }} />) : null}
                                             </ListItemButton>
                                         </ListItem>
                                         {item.subItems && (
@@ -466,15 +473,20 @@ export default function layout({ children }: { children: React.ReactNode }) {
                                                         return (
                                                             <ListItemButton
                                                                 key={subItem}
-                                                                sx={{ pl: 4 }}
+                                                                sx={{
+                                                                    pl: 4,
+                                                                    '&:hover': {
+                                                                        borderRadius: '10px',
+                                                                    },
+                                                                }}
                                                                 onClick={() => handleMainMenu(subItem)}
-                                                                // className={`${styles.subItems}`}
-                                                                
+                                                            // className={`${styles.subItems}`}
+
                                                             >
                                                                 <ListItemText
                                                                     primary={subItem}
                                                                     className={`${styles.subItems} ${isSubItemSelected ? styles.subItemSelected : ''}`}
-                                                                   
+
                                                                     disableTypography
                                                                 />
                                                             </ListItemButton>
