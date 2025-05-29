@@ -16,3 +16,5 @@ npm install geist
 npm install react-icons
 
 npm install @toolpad/core
+
+npm install lodash

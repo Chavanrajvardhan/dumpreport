@@ -13,6 +13,7 @@ import Popover from '@mui/material/Popover';
 import CircularProgress from '@mui/material/CircularProgress';
 import * as XLSX from 'xlsx';
 import { useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 
 export interface DataRowModel {
   id: GridRowId;
@@ -271,15 +272,15 @@ function useData(rowLength: number, columnLength: number) {
       setIsLoading(true);
       try {
         // Retrieve from localStorage
-        const storedPayload = localStorage.getItem('formPayload');
+        const storedPayload = localStorage.getItem('dumpReportPayload');
         let payload = storedPayload ? JSON.parse(storedPayload) : {};
 
         // Replace null with 0
-        payload = Object.fromEntries(
-          Object.entries(payload).map(([key, value]) => [key, value === null ? 0 : value])
-        );
+        // payload = Object.fromEntries(
+        //   Object.entries(payload).map(([key, value]) => [key, value === null ? 0 : value])
+        // );
 
-        console.log("Payload", payload);
+        // console.log("Payload", payload);
 
         // Set payload info for UI
         setPayloadInfo({

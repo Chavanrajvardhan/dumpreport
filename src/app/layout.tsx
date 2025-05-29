@@ -1,8 +1,8 @@
-// layout.tsx or layout.ts
-
-import { GeistSans, GeistMono } from "geist/font";
-import type { Metadata } from "next";
+// app/layout.tsx or app/layout.ts
 import "./globals.css";
+import { GeistSans, GeistMono } from "geist/font"; // ensure you're using the right font import
+import type { Metadata } from "next";
+import ReactQueryProvider from "./utilis/ReactQueryProvider";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -11,12 +11,20 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
-      <body>{children}</body>
+    <html
+      lang="en"
+      className={`${GeistSans.variable} ${GeistMono.variable}`}
+    >
+      <body className="font-sans"> {/* Add class for base font */}
+        <ReactQueryProvider>
+          {children}
+          
+          </ReactQueryProvider>
+      </body>
     </html>
   );
 }

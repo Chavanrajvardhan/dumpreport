@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
             headersInfo
         );
 
-        console.log("res", res.data);
+        // console.log("res", res.data);
 
         if (!res.data) {
             return NextResponse.json({ error: "No data found" }, { status: 404 });

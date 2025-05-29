@@ -1,474 +1,334 @@
 "use client";
-import React, { useState, useEffect, useContext } from "react";
-import styles from "./Dumpform.module.css";
-import axios from "axios";
+import React, { useState, useCallback, useMemo, useContext, useEffect } from "react";
+import dynamic from "next/dynamic";
+import { useRouter, useSearchParams } from "next/navigation";
 import { format } from "date-fns";
+import dayjs, { Dayjs } from "dayjs";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import styles from "./Dumpform.module.css";
 import { LoadingContext } from '../../app/(dashboard)/layout'; // Import the context from your layout
 
-
-// MUI components
-import {
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  OutlinedInput,
-  useTheme,
-  SelectChangeEvent,
-  TextField,
-  ThemeProvider,
-  createTheme,
-} from "@mui/material";
-import { styled } from "@mui/material/styles";
-import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
-import dayjs, { Dayjs } from "dayjs";
-import { OrganizationSegment, Franchise, FormPayload } from "../../schema/types";
-import { useRouter } from "next/navigation";
-
-
-// Menu props for consistent dropdown behavior
-const MENU_PROPS = {
-  PaperProps: {
-    style: {
-      maxHeight: 48 * 4.5 + 8, // ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP
-      width: 250,
-    },
-  },
-  MenuListProps: {
-    style: {
-      padding: '4px 0', // Reduce padding around the menu list
-    },
-  },
-};
-
-// Style utility function for menu items
-function getMenuItemStyle(
-  name: string,
-  selectedValue: string,
-  theme: ReturnType<typeof useTheme>
-) {
-  return {
-    fontWeight:
-      selectedValue === name
-        //@ts-ignore
-        ? theme.typography.fontWeightMedium
-        //@ts-ignore
-        : theme.typography.fontWeightRegular,
-    padding: '8px 20px', // Adjust padding for each menu item
-    // minHeight: '20px', // Set a consistent height for menu items
-    display: 'flex',
-    alignItems: 'center',
-    fontSize: '12px',
-    margin: '0px 8px',
-    borderRadius: '7px',
-
-  };
+// Types
+interface Franchise {
+  franchise: string;
 }
 
-// Custom styled components
-const selectFieldStyles = {
-  m: 1,
-  width: 350,
-  "& .MuiOutlinedInput-root": {
-    height: "40px",
-    borderRadius: "8px",
-    "& .MuiOutlinedInput-notchedOutline": {
-      borderRadius: "8px",
-      borderColor: "rgba(0, 0, 0, 0.23)",
+
+interface OrganizationSegment {
+  id: string;
+  code: string;
+  description: string;
+}
+
+interface FormPayload {
+  MonthDate: string | null;
+  franchise: string | null;
+  distributorId: string;
+  orgSegment: string | null;
+}
+
+// Dynamic imports for code splitting
+const MUIComponents = dynamic(() => import("./MUIComponents"), {
+  loading: () => <div>Loading form components...</div>,
+  ssr: false,
+});
+
+// Custom hooks for data fetching
+const useFormData = () => {
+  const franchiseQuery = useQuery({
+    queryKey: ["franchises"],
+    queryFn: async (): Promise<Franchise[]> => {
+      const response = await fetch("/api/formdata/getallfranchise", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!response.ok) throw new Error("Failed to fetch franchises");
+      const data = await response.json();
+      return data.result;
     },
-    "&:hover .MuiOutlinedInput-notchedOutline": {
-      borderColor: "rgba(0, 0, 0, 0.87)",
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    cacheTime: 10 * 60 * 1000, // 10 minutes
+  });
+
+  const segmentQuery = useQuery({
+    queryKey: ["organization-segments"],
+    queryFn: async (): Promise<OrganizationSegment[]> => {
+      const response = await fetch("/api/formdata/getorgsegment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!response.ok) throw new Error("Failed to fetch segments");
+      const data = await response.json();
+      const segments = data.result;
+      
+      // Add "All" as the first item
+      return [
+        { id: "3", code: "ALL", description: "ALL" },
+        ...segments,
+      ];
     },
-    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-      borderColor: "gray",
-    },
-    "& input": {
-      paddingTop: "10px",
-      paddingBottom: "10px",
-    },
-  },
-  "& .MuiInputLabel-root": {
-    color: "gray",
-    top: "-2px",
-    transform: "translate(14px, 12px) scale(1)",
-    "&.MuiInputLabel-shrink": {
-      transform: "translate(14px, -9px) scale(0.75)",
-    },
-    "&.Mui-focused": {
-      color: "gray",
-    },
-  },
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 10 * 60 * 1000,
+  });
+
+  return {
+    franchises: franchiseQuery.data || [],
+    segments: segmentQuery.data || [],
+    isLoading: franchiseQuery.isLoading || segmentQuery.isLoading,
+    error: franchiseQuery.error || segmentQuery.error,
+  };
 };
 
-// Custom date picker theme
-const customDatePickerTheme = createTheme({
-  components: {
-    // MuiPickersDay: {
-    //   styleOverrides: {
-    //     root: {
-    //       "&.Mui-selected": {
-    //         backgroundColor: "red !important",
-    //         color: "white !important",
-    //       },
-    //     },
-    //   },
-    // },
-    // Add these additional component overrides
-    // MuiButtonBase: {
-    //   styleOverrides: {
-    //     root: {
-    //       "&.MuiPickersMonth-root.Mui-selected": {
-    //         backgroundColor: "red !important",
-    //         color: "white !important",
-    //       },
-    //       "&.MuiPickersYear-root.Mui-selected": {
-    //         backgroundColor: "red !important",
-    //         color: "white !important",
-    //       },
-    //     },
-    //   },
-    // },
-    // MuiYearCalendar: {
-    //   styleOverrides: {
-    //     root: {
-    //       "& .MuiPickersYear-yearButton.Mui-selected": {
-    //         backgroundColor: "red !important",
-    //         color: "white !important",
-    //       },
-    //     },
-    //   },
-    // },
-    // MuiMonthCalendar: {
-    //   styleOverrides: {
-    //     root: {
-    //       "& .MuiPickersMonth-monthButton.Mui-selected": {
-    //         backgroundColor: "red !important",
-    //         color: "white !important",
-    //       },
-    //     },
-    //   },
-    // },
-
-    MuiMenuItem: {
-      styleOverrides: {
-        root: {
-          '&.Mui-selected': {
-            backgroundColor: 'rgba(0, 0, 0, 0.12)',
-          },
-          '&.Mui-selected:hover': {
-            backgroundColor: 'rgba(0, 0, 0, 0.12)',
-          },
-        },
-      },
-    },
-  },
-});
-
-
-// Styled TextField for date picker
-const CustomTextField = styled(TextField)({
-  width: "350px",
-
-  height: "50px",
-  "& label": {
-    color: "gray",
-  },
-  "& label.Mui-focused": {
-    color: "gray",
-  },
-  "& .MuiOutlinedInput-root": {
-    height: "40px",
-    "& fieldset": {
-      borderColor: "#c4c4c4",
-      borderRadius: "8px",
-    },
-    "&:hover fieldset": {
-      borderColor: "darkgray",
-    },
-    "&.Mui-focused fieldset": {
-      borderColor: "gray",
-    },
-  },
-});
-
-const DumpReportPage: React.FC = () => {
-  const { loading, setLoading } = useContext(LoadingContext);
-
-  const theme = useTheme();
-
-  // State management
-  const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs().subtract(0, "day"));
-  const [month, setMonth] = useState<Date | null>(null);
-  const [franchiseList, setFranchiseList] = useState<Franchise[]>([]);
-  const [selectedFranchise, setSelectedFranchise] = useState<string>("");
-  const [distributor, setDistributor] = useState<string>("");
-  const [organizationSegments, setOrganizationSegments] = useState<OrganizationSegment[]>([]);
-  const [selectedSegment, setSelectedSegment] = useState<string>("");
-  const router = useRouter();
-
-
-  // Fetch franchise and organization segment data
-  useEffect(() => {
-    const fetchInitialData = async () => {
-
-      try {
-        setLoading(false);
-        const franchiseResponse = await axios.post(
-          "/api/formdata/getallfranchise"
-        );
-        const franchiseData = franchiseResponse.data.result as Franchise[];
-        setFranchiseList(franchiseData);
-
-        const segmentResponse = await axios.post("/api/formdata/getorgsegment");
-        const segmentData = segmentResponse.data.result as OrganizationSegment[];
-        setOrganizationSegments(segmentData);
-      } catch (error) {
-        console.error("Error fetching initial data:", error);
-        router.push("/error");
-      }
+// Memoized form validation
+const useFormValidation = (payload: FormPayload) => {
+  return useMemo(() => {
+    const errors: string[] = [];
+    
+    if (!payload.MonthDate) {
+      errors.push("Month is required");
+    }
+    
+    if (!payload.franchise) {
+      errors.push("Franchise is required");
+    }
+    
+    return {
+      isValid: errors.length === 0,
+      errors,
     };
+  }, [payload]);
+};
 
-    fetchInitialData();
+// Utility functions for localStorage operations
+const saveToLocalStorage = (key: string, data: any) => {
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.setItem(key, JSON.stringify(data));
+    } catch (error) {
+      console.error("Error saving to localStorage:", error);
+    }
+  }
+};
+
+const getFromLocalStorage = (key: string) => {
+  if (typeof window !== "undefined") {
+    try {
+      const item = localStorage.getItem(key);
+      return item ? JSON.parse(item) : null;
+    } catch (error) {
+      console.error("Error reading from localStorage:", error);
+      return null;
+    }
+  }
+  return null;
+};
+
+// Main component
+const DumpReportForm: React.FC = () => {
+  const { loading, setLoading } = useContext(LoadingContext);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    setLoading(false);
   }, [setLoading]);
 
-  const handleDateChange = (newValue: Dayjs | null) => {
-    if (newValue) {
-      setSelectedDate(newValue);
-      const dateObj = newValue.toDate();
-      const firstOfMonth = new Date(
-        dateObj.getFullYear(),
-        dateObj.getMonth(),
-        1
-      );
-      setMonth(firstOfMonth);
-    } else {
-      setMonth(null);
+  // Initialize state from localStorage first, then URL params as fallback
+  const [selectedDate, setSelectedDate] = useState<Dayjs>(() => {
+    // Try to get from localStorage first
+    const savedData = getFromLocalStorage("dumpReportFormData");
+    if (savedData?.selectedDate) {
+      return dayjs(savedData.selectedDate);
     }
-  };
+    
+    // Fallback to URL params
+    const dateParam = searchParams.get("date");
+    return dateParam ? dayjs(dateParam) : dayjs().subtract(0, "day");
+  });
+  
+  const [selectedFranchise, setSelectedFranchise] = useState<string>(() => {
+    const savedData = getFromLocalStorage("dumpReportFormData");
+    return savedData?.selectedFranchise || searchParams.get("franchise") || "";
+  });
+  
+  const [distributor, setDistributor] = useState<string>(() => {
+    const savedData = getFromLocalStorage("dumpReportFormData");
+    return savedData?.distributor || searchParams.get("distributor") || "";
+  });
+  
+  const [selectedSegment, setSelectedSegment] = useState<string>(() => {
+    const savedData = getFromLocalStorage("dumpReportFormData");
+    return savedData?.selectedSegment || searchParams.get("segment") || "";
+  });
 
-  // Handler for franchise selection
-  const handleFranchiseChange = (event: SelectChangeEvent<string>) => {
-    setSelectedFranchise(event.target.value);
-  };
+  // Data fetching with React Query
+  const { franchises, segments, isLoading, error } = useFormData();
 
-  // Handler for distributor selection
-  const handleDistributorChange = (event: SelectChangeEvent<string>) => {
-    setDistributor(event.target.value);
-  };
+  // Memoized form payload
+  const formPayload = useMemo((): FormPayload => {
+    const month = selectedDate ? new Date(
+      selectedDate.year(),
+      selectedDate.month(),
+      1
+    ) : null;
 
-  // Handler for segment selection
-  const handleSegmentChange = (event: SelectChangeEvent<string>) => {
-    setSelectedSegment(event.target.value);
-  };
-
-  // Form submission handler
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const payload: FormPayload = {
+    return {
       MonthDate: month ? format(month, "yyyy-MM-dd") : null,
       franchise: selectedFranchise || null,
       distributorId: distributor === "ALL" ? "0" : distributor,
-      orgSegment: selectedSegment === "ALL" ? null : selectedSegment
+      orgSegment: selectedSegment === "ALL" ? null : selectedSegment,
     };
+  }, [selectedDate, selectedFranchise, distributor, selectedSegment]);
 
-    if (typeof window !== "undefined") {
-      localStorage.setItem("formPayload", JSON.stringify(payload));
-      window.open("/report", "_blank");
+  // Form validation
+  const { isValid, errors } = useFormValidation(formPayload);
+
+  // Save form state to localStorage whenever it changes
+  useEffect(() => {
+    const formState = {
+      selectedDate: selectedDate ? selectedDate.format("YYYY-MM-DD") : null,
+      selectedFranchise,
+      distributor,
+      selectedSegment,
+    };
+    saveToLocalStorage("dumpReportFormData", formState);
+  }, [selectedDate, selectedFranchise, distributor, selectedSegment]);
+
+  // Mutation for form submission
+  const submitMutation = useMutation({
+    mutationFn: async (payload: FormPayload) => {
+      // Store payload in localStorage with a specific key for the report
+      saveToLocalStorage("dumpReportPayload", payload);
+      
+      // Also save timestamp for cache invalidation if needed
+      saveToLocalStorage("dumpReportPayloadTimestamp", Date.now());
+      
+      return payload;
+    },
+    onSuccess: () => {
+      // Simply navigate to report page without URL parameters
+      // The report page will read the payload from localStorage
+      const url = "/report";
+      window.open(url, "_blank");
+    },
+    onError: (error) => {
+      console.error("Form submission error:", error);
+    },
+  });
+
+  // Memoized event handlers
+  const handleDateChange = useCallback((newValue: Dayjs | null) => {
+    if (newValue) {
+      setSelectedDate(newValue);
     }
-  };
+  }, []);
+
+  const handleFranchiseChange = useCallback((value: string) => {
+    setSelectedFranchise(value);
+  }, []);
+
+  const handleDistributorChange = useCallback((value: string) => {
+    setDistributor(value);
+  }, []);
+
+  const handleSegmentChange = useCallback((value: string) => {
+    setSelectedSegment(value);
+  }, []);
+
+  const handleSubmit = useCallback((e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (isValid) {
+      submitMutation.mutate(formPayload);
+    }
+  }, [isValid, formPayload, submitMutation]);
+
+  // Function to clear form data
+  const handleClearForm = useCallback(() => {
+    setSelectedDate(dayjs().subtract(0, "day"));
+    setSelectedFranchise("");
+    setDistributor("");
+    setSelectedSegment("");
+    
+    // Also clear from localStorage
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("dumpReportFormData");
+    }
+  }, []);
+
+  // Error boundary fallback
+  if (error) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.error}>
+          <h2>Error loading form data</h2>
+          <p>{error instanceof Error ? error.message : "Unknown error"}</p>
+          <button onClick={() => window.location.reload()}>Retry</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <ThemeProvider theme={customDatePickerTheme}>
-      <div className={styles.container}>
-        <main className={styles.main}>
-          <h1 className={styles.heading}>Dump Report</h1>
-           <div className={styles.card} style={{ padding: "30px" }}>
-          {/* Month picker with inline styles for alignment */}
-          <div style={{
-            display: "flex",
-            alignItems: "center",
-           
-            marginBottom: "10px",
-            gap: "91px"
-          }}>
-            <label style={{
-              minWidth: "180px",
-              fontSize: "18px",
-              fontWeight: "500",
-   
-              textAlign: "left"
-            }}>Month :</label>
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <DemoContainer components={["DatePicker"]} >
-                <DatePicker
-                  label="Month"
-                  value={selectedDate}
-                  onChange={handleDateChange}
-                  format="MMM-YYYY"
-                  views={["month", "year"]}
-                    maxDate={dayjs('2025-12-31')} // stops year at 2025, all months available
-                  enableAccessibleFieldDOMStructure={false}
-                  slots={{
-                    textField: (params) => <CustomTextField {...params} />,
-                  }}
-                  slotProps={{
-                    popper: {
-                      modifiers: [
-                        {
-                          name: "offset",
-                          options: {
-                            offset: [0, 10],
-                          },
-                        },
-                      ],
-                      sx: {
-                        height: "300px",
-                       
-                        "& .MuiYearCalendar-root .Mui-selected": {
-                          backgroundColor: "rgb(213, 25, 0) !important",
-                          color: "white !important",
- 
-                         
-                        },
-                        "& .MuiMonthCalendar-root .Mui-selected": {
-                          backgroundColor: "rgb(213, 25, 0) !important",
-                          color: "white !important",
-                       
-                        },
-                      },
-                    },
-                  }}
-                />
-              </DemoContainer>
-            </LocalizationProvider>
-          </div>
- 
-          {/* Franchise dropdown with inline styles for alignment */}
-          <div style={{
-            display: "flex",
-            alignItems: "center",
-            marginBottom: "10px",
-            gap: "84px"
-          }}>
-            <label style={{
-              minWidth: "180px",
-              fontSize: "18px",
-              fontWeight: "500",
-              textAlign: "left"
-            }}>Franchise :</label>
-            <FormControl sx={{ ...selectFieldStyles}}>
-              <InputLabel id="franchise-label">Franchise</InputLabel>
-              <Select
-                labelId="franchise-label"
-                id="franchise-select"
-                value={selectedFranchise}
-                onChange={handleFranchiseChange}
-                input={<OutlinedInput label="Franchise" />}
-                MenuProps={MENU_PROPS}
-              >
-                {franchiseList.map((item) => (
-                  <MenuItem
-                    key={item.franchise}
-                    value={item.franchise}
-                    style={getMenuItemStyle(
-                      item.franchise,
-                      selectedFranchise,
-                      theme
-                    )}
-                  >
-                    {item.franchise}
-                  </MenuItem>
+    <div className={styles.container}>
+      <main className={styles.main}>
+        <h1 className={styles.heading}>Dump Report</h1>
+        
+        <form onSubmit={handleSubmit}>
+          <div className={styles.card} style={{ padding: "30px" }}>
+            <MUIComponents
+              selectedDate={selectedDate}
+              selectedFranchise={selectedFranchise}
+              distributor={distributor}
+              selectedSegment={selectedSegment}
+              franchises={franchises}
+              segments={segments}
+              isLoading={isLoading}
+              onDateChange={handleDateChange}
+              onFranchiseChange={handleFranchiseChange}
+              onDistributorChange={handleDistributorChange}
+              onSegmentChange={handleSegmentChange}
+            />
+            
+            {/* Display validation errors */}
+            {errors.length > 0 && (
+              <div className={styles.errorList}>
+                {errors.map((error, index) => (
+                  <p key={index} className={styles.errorMessage}>
+                    {error}
+                  </p>
                 ))}
-              </Select>
-            </FormControl>
+              </div>
+            )}
           </div>
- 
-          {/* Distributor dropdown with inline styles for alignment */}
-          <div style={{
-            display: "flex",
-            alignItems: "center",
-            marginBottom: "10px",
-            gap: "84px"
-          }}>
-            <label style={{
-              minWidth: "180px",
-              fontSize: "18px",
-              fontWeight: "500",
-              textAlign: "left"
-            }}>Distributor Name :</label>
-            <FormControl sx={{ ...selectFieldStyles }}>
-              <InputLabel id="distributor-label">Distributor</InputLabel>
-              <Select
-                labelId="distributor-label"
-                id="distributor-select"
-                value={distributor}
-                onChange={handleDistributorChange}
-                input={<OutlinedInput label="Distributor" />}
-                MenuProps={MENU_PROPS}
-              >
-                <MenuItem
-                  key="ALL"
-                  value="ALL"
-                  style={getMenuItemStyle("ALL", distributor, theme)}
-                >
-                  ALL
-                </MenuItem>
-              </Select>
-            </FormControl>
-          </div>
- 
-          {/* Organization Segment dropdown with inline styles for alignment */}
-          <div style={{
-            display: "flex",
-            alignItems: "center",
-            marginBottom: "30px",
-            gap: "84px"
-          }}>
-            <label style={{
-              minWidth: "180px",
-              fontSize: "18px",
-              fontWeight: "500",
-              textAlign: "left"
-            }}>Organization Segment :</label>
-            <FormControl sx={{ ...selectFieldStyles}}>
-              <InputLabel id="segment-label">Organization Segment</InputLabel>
-              <Select
-                labelId="segment-label"
-                id="segment-select"
-                value={selectedSegment}
-                onChange={handleSegmentChange}
-                input={<OutlinedInput label="Organization Segment" />}
-                MenuProps={MENU_PROPS}
-              >
-                {organizationSegments.map((segment) => (
-                  <MenuItem
-                    key={segment.id}
-                    value={segment.code}
-                    style={getMenuItemStyle(
-                      segment.code,
-                      selectedSegment,
-                      theme
-                    )}
-                  >
-                   
-                    {segment.description}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </div>
-        </div>
- 
+
           <div className={styles.action}>
-            <button onClick={handleSubmit}>View</button>
+            <button 
+              type="submit" 
+              disabled={!isValid || submitMutation.isLoading}
+              className={styles.submitButton}
+            >
+              {submitMutation.isLoading ? "Processing..." : "View"}
+            </button>
+            
+            <button 
+              type="button" 
+              onClick={handleClearForm}
+              className={styles.clearButton}
+              style={{ marginLeft: "10px" }}
+            >
+              Clear Form
+            </button>
           </div>
-        </main>
-      </div>
-    </ThemeProvider>
+        </form>
+      </main>
+    </div>
   );
 };
+
+// Wrap with Suspense for better loading experience
+const DumpReportPage: React.FC = () => (
+  <DumpReportForm />
+);
 
 export default DumpReportPage;
